@@ -1,0 +1,203 @@
+<!-- user表单弹窗 -->
+<form id="user-form" lay-filter="user-form" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">账号</label>
+                <div class="layui-input-block">
+                    <input id="username" name="username" placeholder="请输入账号" type="text" class="layui-input"
+                           minlength="6" maxlength="20"
+                           lay-verify="required|uniqueVerify" required/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">姓名</label>
+                <div class="layui-input-block">
+                    <input name="realName" placeholder="请输入真实姓名" type="text" class="layui-input" minlength="2"
+                           maxlength="20"
+                           lay-verify="required" required/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="sex" value="男" title="男" checked/>
+                    <input type="radio" name="sex" value="女" title="女"/>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div id="pwd" class="layui-form-item">
+                <label class="layui-form-label">密码</label>
+                <div class="layui-input-block">
+                    <input name="password" placeholder="请输入密码" type="text" class="layui-input" minlength="6"
+                           maxlength="20"
+                           lay-verify="required" required/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">电子邮箱</label>
+                <div class="layui-input-block">
+                    <input name="email" placeholder="请输入电子邮箱" type="text" class="layui-input" lay-verify="enemail"/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">联系方式</label>
+                <div class="layui-input-block">
+                    <input name="phone" placeholder="请输入联系方式" type="text" class="layui-input" lay-verify="enphone"/>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">组织</label>
+                <div class="layui-input-block">
+                    <select name="orgIds" xm-select="orgId" lay-verify="required">
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">角色</label>
+                <div class="layui-input-block">
+                    <select name="roleIds" xm-select="roleId" lay-verify="required">
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">岗位</label>
+                <div class="layui-input-block">
+                    <select name="postIds" xm-select="postId">
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item model-form-footer">
+            <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
+            <button class="layui-btn" lay-filter="user-form-submit" lay-submit>保存</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    layui.use(['layer', 'crab', 'form', 'formSelects'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var formSelects = layui.formSelects;
+        var edit = false;
+
+        form.render('radio');
+
+        var roleUrl = '/sys/role/list', orgUrl = '/sys/org/all/list', postUrl = '/sys/post/list';
+        // 编辑的用户信息
+        var user = crab.getFormData();
+        if (user) {
+            $('#pwd').remove();
+            $('#username').attr('disabled', true);
+            edit = true;
+            // 编辑角色查询选中接口
+            roleUrl += '_' + user.id;
+            orgUrl += '_' + user.id;
+        }
+
+        // 获取所有角色
+        crab.request(roleUrl, {}, function (data) {
+            // 渲染多选下拉框
+            var roleSelectData = new Array();
+            for (var i = 0; i < data.length; i++) {
+                roleSelectData.push({name: data[i].name, value: data[i].id});
+            }
+            formSelects.data('roleId', 'local', {arr: roleSelectData});
+
+            // 回显用户数据
+            $('#user-form').attr('method', edit ? 'PUT' : 'POST');
+            if (edit) {
+                user.password = '';
+                form.val('user-form', user);
+                var rds = new Array();
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i].selected) {
+                        rds.push(data[i].id);
+                    }
+                }
+                formSelects.value('roleId', rds);
+            }
+        });
+
+        crab.request(postUrl, {}, function (data) {
+            // 渲染多选下拉框
+            var postSelectData = new Array();
+            for (var i = 0; i < data.length; i++) {
+                postSelectData.push({name: data[i].name, value: data[i].id});
+            }
+            formSelects.data('postId', 'local', {arr: postSelectData});
+
+            if (edit) {
+                crab.get('/sys/post/list_' + user.id, {}, function (result) {
+                    var ids = new Array();
+                    for (var i = 0; i < result.length; i++) {
+                        ids.push(result[i].postId);
+                    }
+                    formSelects.value('postId', ids);
+                });
+            }
+        });
+
+
+        // 获取所有组织
+        crab.request(orgUrl, {}, function (data) {
+            var roleSelectData = crab.createTreeData(JSON.parse(JSON.stringify(data)), '0');
+            // 渲染多选下拉框
+            formSelects.data('orgId', 'local', {arr: roleSelectData});
+            // 回显用户数据
+            if (edit) {
+                var ods = new Array();
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i].selected) {
+                        ods.push(data[i].id);
+                    }
+                }
+                formSelects.value('orgId', ods);
+            }
+        });
+
+        // 表单提交事件
+        form.verify({
+            enphone: function (value, item) { //value：表单的值、item：表单的DOM对象
+                if (value !== '' && !new RegExp("^$|^1\\d{10}$").test(value)) {
+                    return '请输入正确的手机号';
+                }
+            },
+            enemail: function (value, item) {
+                if (value !== '' && !new RegExp("^[a-z0-9]+([._\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$").test(value)) {
+                    return '邮箱格式不正确';
+                }
+            },
+            uniqueVerify: function (value, item) {
+                var url = '/sys/user', flag = true;
+                if (edit) {
+                    url += '/verify/' + user.id + '/' + value;
+                } else {
+                    url += '/verify/-1/' + value;
+                }
+                crab.request(url, {}, function (data) {
+                    flag = parseInt(data) <= 0;
+                }, 'GET', '', false);
+                if (!flag) return "该账号已存在";
+            }
+        }).on('submit(user-form-submit)', function (data) {
+            var url = '/sys/user/dto';
+            if (edit) {
+                url += '/edit';
+            }
+            crab.request(url, data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                crab.finishPopupCenter();
+            }, $('#user-form').attr('method'));
+            return false;
+        });
+    });
+</script>

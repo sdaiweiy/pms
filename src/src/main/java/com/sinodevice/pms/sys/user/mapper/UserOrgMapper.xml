@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.sys.user.mapper.UserOrgMapper">
+
+    <select id="selectSelectedVO" resultType="com.sinodevice.pms.sys.user.vo.UserOrgSelectedVO">
+    SELECT r.id,r.pid,r.name,r.id AS `value`,( CASE WHEN u.id IS NOT NULL THEN 'true' END ) AS selected
+	FROM sys_org r LEFT JOIN sys_user_org u ON r.id=u.org_id
+    AND u.user_id=#{userId} WHERE r.deleted=0 ORDER BY r.id
+    </select>
+</mapper>

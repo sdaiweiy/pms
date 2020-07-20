@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.sys.dict.mapper.DictCommonMapper">
+
+    <select id="selectTopList" resultType="com.sinodevice.pms.sys.dict.entity.DictCommon">
+        SELECT id,name FROM dict_common WHERE pid=0 AND deleted=0 ORDER BY id
+    </select>
+
+</mapper>

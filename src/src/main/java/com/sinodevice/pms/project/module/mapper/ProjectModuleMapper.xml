@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.project.module.mapper.ProjectModuleMapper">
+
+    <select id="queryChildrenIds" resultType="com.sinodevice.pms.project.module.entity.ProjectModule">
+        SELECT id FROM project_module WHERE deleted=0 AND FIND_IN_SET(id,queryResourceChildrenIds(#{id}))
+    </select>
+
+</mapper>

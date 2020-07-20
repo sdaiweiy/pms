@@ -1,0 +1,203 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">权限管理</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>系统管理</cite></a>
+          <a><cite>权限管理</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <div class="layui-form toolbar">
+            关键字：<input id="keyword" class="layui-input search-input" type="text" placeholder="输入名称"/>&emsp;
+            <button id="resource-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索</button>
+        </div>
+
+        <script type="text/html" id="resource-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>添加</button>
+                <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="expand"><i class="layui-icon">&#xe6b1;</i>全部展开
+                </button>
+                <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="fold"><i class="layui-icon">&#xe656;</i>全部折叠
+                </button>
+                <!--<button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="operate"><i class="layui-icon">&#xe63c;</i>操作日志
+                </button>-->
+            </div>
+        </script>
+        <table class="layui-table" id="resource-table" lay-filter="resource-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格操作列 -->
+<script type="text/html" id="resource-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<!-- 表格状态列 -->
+<script type="text/html" id="resource-tpl-status">
+    <input type="checkbox" lay-filter="resource-tpl-status" value="{{d.id}}" lay-skin="switch"
+           lay-text="正常|禁用" {{d.status==0?'checked':''}}/>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'treeTable'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+
+        var treeTable = layui.treeTable, tableId = '#resource-table';
+
+        var expandIndexs = {};
+        // 渲染表格
+        var renderTable = function () {
+            treeTable.render({
+                treeColIndex: 1,
+                treeSpid: 0,
+                treeIdName: 'id',
+                treePidName: 'pid',
+                treeDefaultClose: true,
+                elem: tableId,
+                toolbar: '#resource-toolbar',
+                url: config.base_server + '/sys/resource/list',
+                cols: [[
+                    {type: 'numbers'},
+                    {field: 'name', title: '名称', width: 200},
+                    {
+                        field: 'icon', title: '图标', width: 60, align: 'center'
+                        , templet: function (d) {
+                            return d.icon ? '<i class="layui-icon ' + d.icon + '"></i>' : '';
+                        }
+                    },
+                    {field: 'type', title: '类型', width: 60, align:'center', templet:function(d){
+                        return ''+d.type === '1'?'功能':'菜单';
+                        }
+                    },
+                    {field: 'code', title: '编码', width: 120, hide:true},
+                    {field: 'uri', title: 'URI', width: 150},
+                    {field: 'path', title: '资源路径'},
+                    {field: 'sort', title: '排序', width: 60, align:'center'},
+                    {field: 'status', templet: '#resource-tpl-status', title: '状态', width: 100},
+                    {fixed: 'right', align: 'center', toolbar: '#resource-table-bar', title: '操作', width: 120}
+                ]],
+                done:function(){
+                    $('.treeTable-icon').each(function(i,e){
+                        var $ti = $(e);
+                        if(expandIndexs[''+$ti.attr('lay-tid')] && 'dir' === ''+$ti.attr('lay-ttype') && !$ti.hasClass('open')){
+                            treeTable.toggleRows($(e), false);
+                        }
+                    });
+                    expandIndexs = {};
+                }
+            });
+        };
+        renderTable();
+
+        // 表格顶部操作列
+        table.on('toolbar(resource-table)', function (obj) {
+            if (obj.event === 'add') {
+                expandIndexs = {};
+                $('.treeTable-icon.open').each(function(i,e){
+                    expandIndexs[''+$(e).attr('lay-tid')]=true;
+                });
+                showEditModel();
+            } else if (obj.event === 'expand') {
+                treeTable.expandAll(tableId);
+            } else if (obj.event === 'fold') {
+                treeTable.foldAll(tableId);
+            }
+        });
+
+        // 工具条点击事件
+        table.on('tool(resource-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+            expandIndexs = {};
+            $('.treeTable-icon.open').each(function(i,e){
+                expandIndexs[''+$(e).attr('lay-tid')]=true;
+            });
+
+            if (layEvent === 'edit') {
+                showEditModel(data);
+            } else if (obj.event === 'del') {
+                //删除
+                layer.confirm('确定要删除该条权限记录吗？', function () {
+                    obj.del = function () {
+                        renderTable();
+                    };
+                    crab.deleteRow(obj, '/sys/resource/' + obj.data.id);
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            crab.putTempData('t_resource', data);
+            var title = data ? '修改权限' : '添加权限';
+            crab.popupCenter({
+                title: title,
+                path: '/components/sys/resource/resource-form.html',
+                finish: function () {
+                    renderTable();
+                }
+            });
+        };
+
+        // 搜索按钮点击事件
+        $('#resource-btn-search').click(function () {
+            treeTable.expandAll('#resource-table');
+            var keyword = $('#keyword').val();
+            var searchCount = 0;
+            $('#resource-table').next('.treeTable').find('.layui-table-body tbody tr td').each(function () {
+                $(this).css('background-color', 'transparent');
+                var text = $(this).text();
+                if (keyword != '' && text.indexOf(keyword) >= 0) {
+                    $(this).css('background-color', 'rgba(250,230,160,0.5)');
+                    if (searchCount == 0) {
+                        treeTable.expandAll(tableId);
+                        $('html,body').stop(true);
+                        $('html,body').animate({scrollTop: $(this).offset().top - 150}, 500);
+                    }
+                    searchCount++;
+                }
+            });
+            if (keyword == '') {
+                layer.msg("请输入搜索内容", {icon: 5});
+            } else if (searchCount == 0) {
+                layer.msg("没有匹配结果", {icon: 5});
+            }
+        });
+
+        // 修改user状态
+        form.on('switch(resource-tpl-status)', function (obj) {
+            function change(obj,callback){
+                crab.put('/sys/resource/status_' + obj.elem.value, {
+                    status: obj.elem.checked ? 0 : -1
+                }, function () {
+                    layer.msg('权限状态修改成功', {icon: 1});
+                    if(callback) callback();
+                },'',true,function (data) {
+                    expandIndexs = {};
+                    $('.treeTable-icon.open').each(function(i,e){
+                        expandIndexs[''+$(e).attr('lay-tid')]=true;
+                    });
+                    renderTable();
+                });
+            }
+            var status = obj.elem.checked ? 0 : -1;
+            if(status === -1){
+                change(obj,function(){
+                    expandIndexs = {};
+                    $('.treeTable-icon.open').each(function(i,e){
+                        expandIndexs[''+$(e).attr('lay-tid')]=true;
+                    });
+                    renderTable();
+                });
+            }else{
+                change(obj);
+            }
+        });
+    });
+</script>

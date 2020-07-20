@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.sys.user.mapper.UserMapper">
+
+    <select id="queryUser" resultType="com.sinodevice.pms.sys.user.entity.User">
+        SELECT DISTINCT
+        `x`.`id` AS `id`,
+        `x`.`username` AS `username`,
+        `x`.`password` AS `password`,
+        `x`.`salt` AS `salt`,
+        `x`.`real_name` AS `real_name`,
+        `x`.`sex` AS `sex`,
+        `x`.`phone` AS `phone`,
+        `x`.`email` AS `email`,
+        `x`.`status` AS `status`,
+        `c`.`showRoles` AS `showRoles`,
+        `e`.`showOrgs` AS `showOrgs`,
+        `f`.`showPosts` AS `showPosts`
+        FROM
+        `sys_user` `x`
+        <if test="user.queryRoleIds != null and user.queryRoleIds != ''">
+        RIGHT JOIN `sys_user_role` ON `x`.`id` = `sys_user_role`.`user_id`
+            AND `sys_user_role`.`role_id` IN (#{user.queryRoleIds})
+        </if>
+        LEFT JOIN (
+        SELECT
+        `a`.`user_id` AS `user_id`,
+        group_concat(`b`.`name` SEPARATOR '，') AS `showRoles`
+        FROM
+        `sys_user_role` `a`
+        LEFT JOIN `sys_role` `b` ON `a`.`role_id` = `b`.`id`
+        GROUP BY
+        `a`.`user_id`
+        ) `c` ON `c`.`user_id` = `x`.`id`
+
+        LEFT JOIN (
+        SELECT
+        `a`.`user_id` AS `user_id`,
+        group_concat(`b`.`name` SEPARATOR '，') AS `showPosts`
+        FROM
+        `sys_user_post` `a`
+        LEFT JOIN `sys_post` `b` ON `a`.`post_id` = `b`.`id`
+        GROUP BY
+        `a`.`user_id`
+        ) `f` ON `f`.`user_id` = `x`.`id`
+
+        LEFT JOIN (
+        SELECT
+        `d`.`user_id` AS `user_id`,
+        group_concat(`queryOrgParentsName` (`d`.`org_id`) SEPARATOR '，') AS `showOrgs`
+        FROM
+        `sys_user_org` `d`
+        GROUP BY
+        `d`.`user_id`
+        ) `e` ON `e`.`user_id` = `x`.`id`
+
+
+        WHERE `x`.`id` IS NOT NULL AND `x`.`deleted` = 0
+        <if test="user.username != null and user.username != ''">
+            <bind name="user.username" value="'%' + user.username + '%'" />
+            AND `x`.`username` LIKE #{user.username}
+        </if>
+        <if test="user.realName != null and user.realName != ''">
+            <bind name="user.realName" value="'%' + user.realName + '%'" />
+            AND `x`.`real_name` LIKE #{user.realName}
+        </if>
+        <if test="user.status != null">
+            AND `x`.`status` = #{user.status}
+        </if>
+        ORDER BY `x`.`id`
+    </select>
+
+    <select id="listReceptionUser" resultType="com.sinodevice.pms.sys.user.dto.UserDTO">
+         SELECT DISTINCT
+        `x`.`id` AS `id`,
+        `x`.`username` AS `username`,
+        `x`.`password` AS `password`,
+        `x`.`salt` AS `salt`,
+        `x`.`real_name` AS `real_name`,
+        `x`.`sex` AS `sex`,
+        `x`.`phone` AS `phone`,
+        `x`.`email` AS `email`,
+        `x`.`status` AS `status`,
+        `x`.`deleted` AS `deleted`,
+        `e`.`showOrgs` AS `showOrgs`
+        FROM
+        `sys_user` `x`
+        RIGHT JOIN `sys_user_role` ON `x`.`id` = `sys_user_role`.`user_id`
+
+        LEFT JOIN (
+        SELECT
+        `d`.`user_id` AS `user_id`,
+        group_concat(`queryOrgParentsName` (`d`.`org_id`) SEPARATOR '，') AS `showOrgs`
+        FROM
+        `sys_user_org` `d`
+        GROUP BY
+        `d`.`user_id`
+        ) `e` ON `e`.`user_id` = `x`.`id`
+
+
+        WHERE `x`.`id` IS NOT NULL AND `x`.`deleted` = 0 and `sys_user_role`.role_id=2
+        ORDER BY `x`.`id`
+    </select>
+
+    <select id="queryByUserIdAndResourceId" resultType="com.sinodevice.pms.sys.user.dto.UserResourceDTO">
+        SELECT d.id AS user_id,a.id AS resource_id
+        FROM sys_resource a
+        JOIN sys_role_resource b ON a.id=b.resource_id
+        JOIN sys_user_role c ON b.role_id=c.role_id
+        JOIN sys_user d ON c.user_id=d.id
+        WHERE d.id=#{userId} AND a.id=#{resourceId}
+    </select>
+
+    <select id="queryUserInfo" resultType="com.sinodevice.pms.sys.user.dto.UserInfoDTO">
+        SELECT
+        `a`.`id` AS `id`,
+        `a`.`username` AS `username`,
+        `a`.`real_name` AS `real_name`,
+        `a`.`sex` AS `sex`,
+        `a`.`phone` AS `phone`,
+        `a`.`email` AS `email`
+        FROM
+        `sys_user` a
+        WHERE a.id=#{id} AND a.status=0 AND a.deleted=0
+    </select>
+</mapper>

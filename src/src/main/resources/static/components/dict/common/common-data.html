@@ -1,0 +1,123 @@
+<!-- 字典数据 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="dict-common-data-search-form" onsubmit="return false;">
+                名称：<input name="name" class="layui-input search-input" type="text" placeholder="输入名称"/>&emsp;
+                状态：<select name="status" lay-verify="">
+                <option value="">请选择一个状态</option>
+                <option value="0">正常</option>
+                <option value="1">禁用</option>
+            </select>&emsp;
+                <button id="dict-common-data-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索
+                </button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="dict-common-data-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>添加</button>
+            </div>
+        </script>
+        <table class="layui-table" id="dict-common-data-table" lay-filter="dict-common-data-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="dict-common-data-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<!-- 表格状态列 -->
+<script type="text/html" id="dict-common-data-tpl-status">
+    <input type="checkbox" lay-filter="dict-common-data-tpl-status" value="{{d.id}}" lay-skin="switch"
+           lay-text="正常|禁用" {{d.status==0?'checked':''}}/>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+
+        // 父窗口传递字典对象
+        var dict = crab.getFormData();
+
+        // 渲染表单
+        form.render();
+
+        // 渲染表格
+        var dictTable = table.render({
+            elem: '#dict-common-data-table',
+            toolbar: '#dict-common-data-toolbar',
+            defaultToolbar: [],
+            url: config.base_server + '/dict/common-plain/page?code=' + dict.code,
+            parseData: config.parseData,
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'name', title: '名称', width: 150},
+                {field: 'initial', title: '编码', width: 100},
+                {field: 'sort', title: '排序', width: 80},
+                {field: 'status', templet: '#dict-common-data-tpl-status', title: '状态', width: 100},
+                {field: 'remark', title: '备注'},
+                {fixed: 'right', align: 'center', toolbar: '#dict-common-data-table-bar', title: '操作', width: 120}
+            ]],
+            where: {'asc': 'sort'}
+        });
+        // 表格顶部操作列
+        table.on('toolbar(dict-common-data-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModelData({code: dict.code});
+            }
+        });
+
+        // 表格操作列事件
+        table.on('tool(dict-common-data-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                // 修改
+                showEditModelData(data);
+            } else if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条字典记录吗？', function () {
+                    crab.deleteRow(obj, '/dict/common-plain/' + obj.data.id);
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModelData = function (data) {
+            crab.putFormData(data);
+            crab.popupCenter({
+                id: 'dictData',
+                title: data ? '修改字典' : '添加字典',
+                path: '/components/dict/common/common-data-form.html',
+                finish: function () {
+                    dictTable.reload('dict-common-data-table', {});
+                }
+            });
+        };
+
+        // 搜索按钮点击事件
+        $('#dict-common-data-btn-search').click(function () {
+            dictTable.reload({where: $.extend({}, {asc: 'sort'}, crab.getSearchForm('#dict-common-data-search-form'))});
+        });
+
+        // 修改dict状态
+        form.on('switch(dict-common-data-tpl-status)', function (obj) {
+            crab.put('/dict/common-plain/status_' + obj.elem.value, {
+                status: obj.elem.checked ? 0 : 1
+            }, function () {
+                layer.msg('字典状态修改成功', {icon: 1});
+            });
+        });
+
+    });
+</script>

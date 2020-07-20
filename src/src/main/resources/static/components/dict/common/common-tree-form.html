@@ -1,0 +1,98 @@
+<!-- 字典表单弹窗 -->
+<form id="dict-tree-form" lay-filter="dict-tree-form" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-block">
+            <input name="name" placeholder="请输入名称" type="text" class="layui-input" minlength="2" maxlength="25"
+                   lay-verify="required"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">上级字典</label>
+        <div class="layui-input-block">
+            <select name="pid" xm-select="pid" lay-verify="required" xm-select-radio></select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">字典编码</label>
+        <div class="layui-input-block">
+            <input name="nodeCode" placeholder="请输入字典编码" type="text" class="layui-input" minlength="2" maxlength="25"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序号</label>
+        <div class="layui-input-block">
+            <input name="sort" placeholder="请输入排序号" value="1" type="number" class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入备注" class="layui-textarea" maxlength="255"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" id="cancelDictData" type="button">取消</button>
+        <button class="layui-btn" lay-filter="dict-tree-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+
+<script>
+    layui.use(['layer', 'crab', 'form', 'formSelects', 'table'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var formSelects = layui.formSelects;
+        var index = layer.index;
+
+
+        // 编辑的参数信息
+        var dict = crab.getFormData();
+        if (dict.edit) {
+            // 回显参数数据
+            form.val('dict-tree-form', dict);
+        }
+
+        // 取消按钮事件
+        $('#cancelDictData').click(function () {
+            layer.close(index);
+        });
+
+        setTimeout(function () {
+            initParentDict(crab, formSelects, dict);
+        }, 100);
+
+
+        form.on('submit(dict-tree-form-submit)', function (data) {
+            data.field.code = dict.code;
+            crab.request('/dict/common-tree', data.field, function () {
+                layer.msg(dict.edit ? '修改成功' : '添加成功', {icon: 1});
+                crab.finishPopupCenter();
+            }, dict.edit ? 'PUT' : 'POST');
+            return false;
+        });
+    });
+
+    function initParentDict(crab, formSelects, dict) {
+        var param = {code: dict.code};
+        if (dict.code === 'common-price-type') {
+            param.pid = 0;
+        }
+        crab.request('/dict/common-tree/listByCode', param, function (data) {
+            data.splice(0, 0, {id: '0', pid: '0', type: -1, name: "无"});
+            //阻止自己是自己的父
+            for (var i = 0; i < data.length; i++) {
+                if (dict && dict.id == data[i].id) {
+                    data.splice(i, 1);
+                }
+            }
+            var dictSelectData = crab.createTreeData(JSON.parse(JSON.stringify(data)), '0');
+            // 渲染多选下拉框
+            formSelects.data('pid', 'local', {arr: dictSelectData, keyVal: 'id'});
+            if (dict.edit) {
+                formSelects.value('pid', [dict.pid + '']);
+            }
+        });
+    }
+</script>

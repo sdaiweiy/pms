@@ -1,0 +1,211 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">部门周报</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>日常汇报</cite></a>
+          <a><cite>部门周报</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <h1 class="summary-title text-center" id="summary-title"></h1>
+
+        <h2 class="summary-title">1.本周工作总结</h2>
+        <div class="summary-content">
+            <table class="layui-table" id="report-week-summary-table" lay-size="sm">
+                <colgroup>
+                    <col width="150">
+                    <col>
+                    <col width="85">
+                    <col width="85">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>总结内容</th>
+                    <th>工作耗时</th>
+                    <th>超出工时</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="summary-title">2.下周计划清单</h2>
+        <div class="summary-content">
+            <table class="layui-table" id="report-week-plan-table" lay-size="sm">
+                <colgroup>
+                    <col width="150">
+                    <col>
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>计划内容</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="summary-title">3.项目进展情况</h2>
+        <div class="summary-content">
+            <table class="layui-table" id="report-project-status" lay-size="sm">
+                <colgroup>
+                    <col width="300">
+                    <col width="100">
+                    <col width="100">
+                    <col width="100">
+                    <col width="100">
+                    <col width="100">
+                    <col width="100">
+                    <col width="100">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th style="text-align: left;">项目名称</th>
+                    <th>任务总数</th>
+                    <th>已完成</th>
+                    <th>未完成</th>
+                    <th>完成度</th>
+                    <th>已消耗时间</th>
+                    <th>负责人</th>
+                    <th>本周完成数</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="summary-title">4.本周工作明细</h2>
+        <div class="summary-content" id="report-week-details"></div>
+    </div>
+</div>
+
+<style type="text/css">
+    .summary-title {
+        color: #000;
+        font-weight: bold;
+        line-height: 35px;
+    }
+
+    h2.summary-title {
+        margin-top: 20px;
+    }
+
+    .summary-content {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    #report-project-status th, #report-project-status td {
+        text-align: center;
+    }
+
+    .link:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'laytpl'], function () {
+        var table = layui.table;
+        var crab = layui.crab;
+        var laytpl = layui.laytpl;
+        var weekInfo = crab.getFormData();
+        var weekIndex = weekInfo.weekIndex;
+
+        $('#summary-title').html(weekInfo.beginDate + ' 至 ' + weekInfo.endDate + ' (第' + weekIndex + '周) 工作周报');
+
+        crab.get('/report/week/list', {limit: 99, page: 1, weekIndex: weekIndex}, function (data) {
+            data = data.records;
+            var summaryHtml = '', planHtml = ''
+            for (var i = 0; i < data.length; i++) {
+                summaryHtml += '<tr><td>' + data[i].realName + '</td><td>' + data[i].remark + '</td><td align="center">' + data[i].workHour + '</td><td align="center">' + (new BigNumber(data[i].workHour).minus(42).toFixed(2)) + '</td></tr>';
+                planHtml += '<tr><td>' + data[i].realName + '</td><td>' + data[i].plan + '</td></tr>';
+            }
+
+            $('#report-week-summary-table tbody').html(summaryHtml);
+            $('#report-week-plan-table tbody').html(planHtml);
+        });
+
+        crab.get('/project/info/listProjectStatus', {}, function (data) {
+            var html = '';
+            for (var i = 0; i < data.length; i++) {
+                html += '<tr>';
+                html += '<td style="text-align: left;">' + data[i].name + '</td>';
+                html += '<td>' + data[i].total + '</td>';
+                html += '<td>' + data[i].finish + '</td>';
+                html += '<td>' + data[i].unFinish + '</td>';
+                if (data[i].finish && data[i].total) {
+                    html += '<td>' + (data[i].finish / data[i].total * 100).toFixed(0) + '%</td>';
+                } else {
+                    html += '<td>0%</td>';
+                }
+                html += '<td>' + (data[i].workHour ? data[i].workHour : '0') + 'h</td>';
+                html += '<td>' + data[i].realName + '</td>';
+                html += '<td>' + data[i].thisWeekCount + '</td>';
+                html += '</tr>';
+            }
+            $('#report-project-status tbody').html(html);
+        });
+
+        crab.get('/report/week/details/list', {weekIndex: weekIndex}, function (data) {
+            var users = [];
+            for (var i = 0; i < data.length; i++) {
+                if (!users[data[i].realName]) {
+                    users[data[i].realName] = [];
+                }
+                users[data[i].realName].push(data[i]);
+            }
+
+            var statusList = {
+                0: '<span class="layui-badge layui-bg-green">进行中</span>',
+                1: '<span class="layui-badge layui-bg-blue">已完成</span>'
+            };
+            var html = '';
+            for (var user in users) {
+                html += '<h4 class="summary-title">' + user + ':</h4>';
+                html += '<table class="layui-table" lay-size="sm">';
+                html += '<colgroup><col width="300"><col width="140"><col width="140"><col width="80"><col width="80"><col></colgroup>';
+                html += '<thead><tr><th>任务名称</th><th>开始时间</th><th>结束时间</th><th>任务耗时</th><th>任务状态</th><th>任务总结</th></tr></thead><tbody>';
+                for (var index = 0; index < users[user].length; index++) {
+                    html += '<tr>';
+                    var taskId = users[user][index].taskId;
+                    if (!taskId) {
+                        html += '<td>' + users[user][index].taskName + '</td>';
+                    } else {
+                        html += '<td><span data-id="' + taskId + '" class="link" href="#">' + users[user][index].taskName + '</span></td>';
+                    }
+                    html += '<td>' + users[user][index].beginTime + '</td>';
+                    html += '<td>' + users[user][index].endTime + '</td>';
+                    html += '<td>' + (users[user][index].workHour ? users[user][index].workHour : '0') + 'h</td>';
+                    html += '<td>' + statusList[users[user][index].status] + '</td>';
+                    html += '<td>' + users[user][index].taskRemark + '</td>';
+                    html += '</tr>';
+                    //html += '<tr><td colspan="4">任务总结&nbsp;:&nbsp;' + users[user][index].taskRemark + '</td></tr>';
+                }
+                html += '</tbody></table>';
+            }
+            $('#report-week-details').html(html);
+        });
+
+        $(document).on('click', '.link', function () {
+            var taskId = $(this).data('id');
+
+            crab.get('/project/task/page', {limit: 1, page: 1, id: taskId}, function (data) {
+                data = data.records[0];
+                data.details = true;
+                crab.putFormData(data);
+                crab.popupCenter({
+                    title: '查看任务信息',
+                    path: '/components/project/task/project-task-form.html',
+                    area: '700px'
+                });
+            })
+        });
+
+    });
+</script>

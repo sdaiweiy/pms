@@ -1,0 +1,124 @@
+<!-- 字典数据 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="dict-normal-tree-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>添加</button>
+                <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="expand"><i class="layui-icon">&#xe6b1;</i>全部展开
+                </button>
+                <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="fold"><i
+                        class="layui-icon">&#xe656;</i>全部折叠
+                </button>
+            </div>
+        </script>
+
+        <table class="layui-table" id="dict-normal-tree-table" lay-filter="dict-normal-tree-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="dict-normal-tree-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<!-- 表格状态列 -->
+<script type="text/html" id="dict-normal-tree-tpl-status">
+    <input type="checkbox" lay-filter="dict-normal-tree-tpl-status" value="{{d.id}}" lay-skin="switch"
+           lay-text="正常|禁用" {{d.status==0?'checked':''}}/>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'treeTable'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+
+        var treeTable = layui.treeTable, tableId = '#dict-normal-tree-table';
+        var expandIndexs = {};
+
+        // 父窗口传递字典对象
+        var dict = crab.getFormData();
+
+        // 渲染表格
+        var renderTable = function () {
+            treeTable.render({
+                treeColIndex: 1,
+                treeSpid: 0,
+                treeIdName: 'id',
+                treePidName: 'pid',
+                treeDefaultClose: true,
+                height: '500px',
+                defaultToolbar: [],
+                elem: '#dict-normal-tree-table',
+                toolbar: '#dict-normal-tree-toolbar',
+                url: config.base_server + '/dict/common-tree/listByCode?code=' + dict.code,
+                cols: [[
+                    {type: 'numbers'},
+                    {field: 'name', title: '名称', width: 150},
+                    {field: 'initial', title: '编码', width: 100},
+                    {field: 'sort', title: '排序', width: 80},
+                    {field: 'status', templet: '#dict-normal-tree-tpl-status', title: '状态', width: 100},
+                    {field: 'remark', title: '备注'},
+                    {fixed: 'right', align: 'center', toolbar: '#dict-normal-tree-table-bar', title: '操作', width: 120}
+                ]]
+            });
+        };
+        renderTable();
+
+        // 表格顶部操作列
+        table.on('toolbar(dict-normal-tree-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModel({code: dict.code});
+            } else if (obj.event === 'expand') {
+                treeTable.expandAll(tableId);
+            } else if (obj.event === 'fold') {
+                treeTable.foldAll(tableId);
+            }
+        });
+
+        // 表格操作列事件
+        table.on('tool(dict-normal-tree-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                data.edit = true;
+                crab.putFormData(data);
+                showEditModel(data);
+            } else if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条字典记录吗？', function () {
+                    crab.deleteRow(obj, '/dict/common-tree/' + obj.data.id);
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            crab.putFormData(data);
+            crab.popupCenter({
+                id: 'dictData',
+                title: data ? '修改字典' : '添加字典',
+                path: '/components/dict/common/common-tree-form.html',
+                finish: function () {
+                    renderTable();
+                }
+            });
+        };
+
+        // 修改dict状态
+        form.on('switch(dict-normal-tree-tpl-status)', function (obj) {
+            crab.put('/dict/common-tree/status_' + obj.elem.value, {
+                status: obj.elem.checked ? 0 : 1
+            }, function () {
+                layer.msg('字典状态修改成功', {icon: 1});
+            });
+        });
+
+    });
+</script>

@@ -1,0 +1,107 @@
+<!-- 字典表单弹窗 -->
+<form id="dict-common-form" lay-filter="dict-common-form" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">字典名称</label>
+        <div class="layui-input-block">
+            <input name="name" placeholder="请输入字典名称" type="text" class="layui-input" minlength="2" maxlength="25"
+                   lay-verify="required"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">上级字典</label>
+        <div class="layui-input-block">
+            <select name="pid" xm-select="pid" xm-select-radio>
+                <option value="">请选择上级字典</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">字典编码</label>
+        <div class="layui-input-block">
+            <input name="code" placeholder="请输入字典编码" type="text" class="layui-input" minlength="2" maxlength="25"/>
+        </div>
+    </div>
+    <div class="layui-form-item" id="dict-common-type-wrap">
+        <label class="layui-form-label">数据类型</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="type" value="1" lay-skin="switch" lay-text="树形|列表">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序号</label>
+        <div class="layui-input-block">
+            <input name="sort" placeholder="请输入排序号" value="1" type="number" class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入备注" class="layui-textarea" maxlength="255"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="dict-common-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+<script>
+    layui.use(['layer', 'crab', 'form', 'formSelects'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var edit = false;
+        var formSelects = layui.formSelects;
+
+        form.render('checkbox');
+
+        // 编辑的参数信息
+        var dict = crab.getFormData();
+        loadParentSelect(dict);
+
+        if (dict) {
+            edit = true;
+            // 回显参数数据
+            form.val('dict-common-form', dict);
+            $('#dict-common-code-wrap input').attr('disabled', true).addClass('layui-disabled');
+        }
+
+        // 表单提交事件
+        form.on('submit(dict-common-form-submit)', function (data) {
+            if (0 != data.field.pid && !data.field.type) {
+                data.field.type = 0;
+            }
+
+            crab.request('/dict/common', data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                crab.finishPopupCenter();
+            }, edit ? 'PUT' : 'POST');
+            return false;
+        });
+
+        //上级选择事件
+        formSelects.on('pid', function (id, vals, data, isAdd, isDisabled) {
+            if (0 == data.value) {
+                $('#dict-common-type-wrap').hide();
+            } else {
+                $('#dict-common-type-wrap').show();
+            }
+            return true;
+        });
+
+        // 加载父节点
+        function loadParentSelect(dict) {
+            crab.get('/dict/common/listTop', {}, function (data) {
+                var postData = [{name: "无", value: 0}];
+                for (var i = 0; i < data.length; i++) {
+                    postData.push({name: data[i].name, value: data[i].id});
+                }
+
+                formSelects.data('pid', 'local', {arr: postData});
+                if (dict) {
+                    formSelects.value('pid', [dict.pid])
+                }
+            }, false, false);
+        }
+    });
+</script>

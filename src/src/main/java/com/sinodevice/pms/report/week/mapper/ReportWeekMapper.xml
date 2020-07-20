@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.report.week.mapper.ReportWeekMapper">
+
+    <select id="page" resultType="com.sinodevice.pms.report.week.vo.ReportWeekVo">
+        SELECT R1.*,S1.REAL_NAME
+        FROM report_week R1 JOIN SYS_USER S1 ON R1.USER_ID = S1.ID
+        WHERE R1.DELETED = 0
+        <if test="reportWeek.userId != null">
+            AND R1.USER_ID = #{reportWeek.userId}
+        </if>
+        <if test="reportWeek.weekIndex != null">
+            AND R1.WEEK_INDEX = #{reportWeek.weekIndex}
+        </if>
+        <if test="reportWeek.beginDate != null">
+            AND R1.BEGIN_DATE <![CDATA[ >= ]]> CONCAT(#{reportWeek.beginDate},' 00:00:00')
+        </if>
+        <if test="reportWeek.endDate != null">
+            AND R1.END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
+        </if>
+        ORDER BY R1.WEEK_INDEX DESC,S1.REAL_NAME ASC
+    </select>
+
+    <select id="pageTotal" resultType="com.sinodevice.pms.report.week.vo.ReportWeekVo">
+        SELECT * FROM report_week where DELETED = 0
+        <if test="reportWeek.beginDate != null">
+            AND R1.BEGIN_DATE <![CDATA[ >= ]]> CONCAT(#{reportWeek.beginDate},' 00:00:00')
+        </if>
+        <if test="reportWeek.endDate != null">
+            AND R1.END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
+        </if>
+        GROUP BY WEEK_INDEX
+        ORDER BY WEEK_INDEX DESC
+    </select>
+
+</mapper>

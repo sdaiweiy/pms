@@ -1,0 +1,140 @@
+<!-- user表单弹窗 -->
+<form id="resource-form" lay-filter="resource-form" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <div class="layui-form-item">
+        <label class="layui-form-label">图 标</label>
+        <div class="layui-input-block">
+            <input name="icon" id="iconPicker" lay-filter="iconPicker" placeholder="请输入图标" type="text" class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">上级菜单</label>
+        <div class="layui-input-block">
+            <select name="pid" xm-select="resource" xm-select-radio lay-verify="required">
+                <option value="">请输入上级菜单</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">权限名称</label>
+        <div class="layui-input-block">
+            <input name="name" placeholder="请输入权限名称" type="text" class="layui-input" maxlength="50"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">权限标识</label>
+        <div class="layui-input-block">
+            <input name="code" placeholder="请输入权限标识" type="text" class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">URI 地址</label>
+        <div class="layui-input-block">
+            <input name="uri" placeholder="请输入 URI 地址" type="text" class="layui-input" value="javascript:;"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">文件路径</label>
+        <div class="layui-input-block">
+            <input name="path" placeholder="请输入文件路径" type="text" class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">类 型</label>
+        <div class="layui-input-block">
+            <input type="radio" name="type" value="0" title="菜单" id="type2" checked/>
+            <input type="radio" name="type" value="1" title="功能" id="type1"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-block">
+            <input name="sort" placeholder="请输入排序" type="number" class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="resource-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+
+<script>
+    layui.use(['layer', 'crab', 'form', 'formSelects', 'iconPicker'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var formSelects = layui.formSelects;
+
+        // 选择图标
+        var iconPicker = layui.iconPicker;
+        iconPicker.render({
+            // 选择器，推荐使用input
+            elem: '#iconPicker',
+            // 数据类型：fontClass/unicode，推荐使用fontClass
+            type: 'fontClass',
+            // 是否开启搜索：true/false
+            search: true,
+            // 是否开启分页
+            page: true,
+            // 每页显示数量，默认12
+            limit: 12,
+            // 点击回调
+            click: function (data) {
+                console.log(data);
+            },
+            // 渲染成功后的回调
+            success: function(d) {
+                console.log(d);
+            }
+        });
+
+        form.render('radio');
+        form.render('select');
+
+        // 回显 resource 数据
+        var edit = false;
+        var icon = 'layui-icon-flag';
+        var resource = crab.getTempData('t_resource');
+        if (resource) {
+            edit = true;
+            if (resource.icon) {
+                icon = resource.icon;
+            }
+            resource.type = ''+resource.type;
+            form.val('resource-form', resource);
+            console.log(resource);
+        }
+
+        // 选中图标
+        iconPicker.checkIcon('iconPicker', icon);
+
+        // 上级菜单
+        crab.get('/sys/resource/list_effective', {}, function (data) {
+            var l = data.length;
+            if (l >= 0) {
+                var resourceData = new Array();
+                    resourceData.push({id:'0',pid:'0',name: '无', value: '0'});
+                for (var i = 0; i < data.length; i++) {
+                    resourceData.push({id:data[i].id,pid:data[i].pid,name: data[i].name, value: data[i].id});
+                }
+                formSelects.data('resource', 'local', {arr: crab.createTreeData(resourceData,'0')});
+                if (resource) {
+                    formSelects.value('resource', [resource.pid])
+                }
+            }
+        });
+
+        // 表单提交事件
+        form.on('submit(resource-form-submit)', function (data) {
+            console.log(data);
+            if(data.field.icon === '')data.field.icon = icon;
+            if(data.field.sort === '')data.field.sort = '0';
+            crab.request('/sys/resource', data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                crab.finishPopupCenter();
+            }, edit ? 'PUT' : 'POST');
+            return false;
+        });
+    });
+</script>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.sys.user.mapper.UserPostMapper">
+
+    <select id="listPostByUserId" resultType="com.sinodevice.pms.sys.user.vo.UserPostVo">
+        SELECT u.post_id,r.name as post_name
+        FROM sys_user_post u JOIN sys_post r ON r.id=u.post_id
+        AND u.user_id = #{userId} WHERE r.deleted=0 ORDER BY sort DESC
+    </select>
+
+    <select id="existPost" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM SYS_USER_POST S1 JOIN SYS_POST S2 ON S1.POST_ID = S2.ID
+        AND S1.USER_ID = #{userId} AND S2.CODE = #{postCode}
+    </select>
+
+</mapper>

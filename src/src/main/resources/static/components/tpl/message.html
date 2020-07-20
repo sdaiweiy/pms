@@ -1,0 +1,82 @@
+<div id="message-view" class="layui-card-body layui-tab layui-tab-brief" style="padding: 5px 0;margin: 0;">
+    <ul class="layui-tab-title" style="text-align: center;">
+        <li class="layui-this">通知({{notices.length}})</li>
+        <li>私信({{messages.length}})</li>
+        <li>待办({{schedules.length}})</li>
+    </ul>
+    <div class="layui-tab-content" style="padding: 5px 0;">
+        <div class="layui-tab-item message-list layui-show" p-each="notices">
+            <a class="message-list-item" href="javascript:;">
+                <img class="message-item-icon" p-bind="src:{{icon}}">
+                <div class="message-item-right">
+                    <h2 class="message-item-title">{{title}}</h2>
+                    <p class="message-item-text">{{time}}</p>
+                </div>
+            </a>
+        </div>
+        <div class="layui-tab-item" p-each="messages">
+            <a class="message-list-item" href="javascript:;">
+                <img class="message-item-icon" p-bind="src:{{icon}}">
+                <div class="message-item-right">
+                    <h2 class="message-item-title">{{title}}</h2>
+                    <p class="message-item-text">{{content}}</p>
+                    <p class="message-item-text">{{time}}</p>
+                </div>
+            </a>
+        </div>
+        <div class="layui-tab-item" p-each="schedules">
+            <a class="message-list-item" href="javascript:;">
+                <div class="message-item-right">
+                    <span class="layui-badge pull-right" p-if="{{state}}==1">待完成</span>
+                    <span class="layui-badge layui-bg-gray pull-right" p-if="{{state}}==2">已完成</span>
+                    <h2 class="message-item-title">{{title}}</h2>
+                    <p class="message-item-text">{{time}}</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    var dataList = {
+        notices: [{
+            icon: 'assets/images/message.png',
+            title: '你收到了1份新周报',
+            time: '1个月前'
+        }, {
+            icon: 'assets/images/message.png',
+            title: '你收到了3份日报',
+            time: '1天前'
+        }],
+        messages: [{
+            icon: 'assets/images/head.png',
+            title: '张三私信了你',
+            content: '明日早晨 7点开会',
+            time: '1小时前'
+        }, {
+            icon: 'assets/images/head.png',
+            title: '王五私信了你',
+            content: '下班请来办公司一趟',
+            time: '10分钟前'
+        }],
+        schedules: [{
+            title: '你收到了1份新日报',
+            time: '3分钟前',
+            state: 1
+        }, {
+            title: '你收到了5封新的邮件',
+            time: '1小时前',
+            state: 2
+        }]
+    };
+
+    layui.use('crab', function () {
+        var crab = layui.crab;
+
+        layer.msg('带上耳机，能听到 MM 提示音哦！└(^o^)┘ ', {icon: 1});
+
+        crab.audioPlay();
+
+        $('#message-view').vm(dataList);
+    });
+</script>

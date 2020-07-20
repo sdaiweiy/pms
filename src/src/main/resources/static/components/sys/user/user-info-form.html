@@ -1,0 +1,93 @@
+<!-- user表单弹窗 -->
+<form id="user-form" lay-filter="user-form" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <div class="layui-row">
+            <div class="layui-form-item">
+                <label class="layui-form-label">账号</label>
+                <div class="layui-input-block">
+                    <input id="username" name="username" placeholder="请输入账号" type="text" class="layui-input" minlength="6" maxlength="20"
+                           disabled/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-block">
+                    <input name="nickName" placeholder="请输入用户名" type="text" class="layui-input" minlength="6" maxlength="20"
+                           lay-verify="required" required/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">真实姓名</label>
+                <div class="layui-input-block">
+                    <input name="realName" placeholder="请输入真实姓名" type="text" class="layui-input" minlength="2" maxlength="20"
+                           lay-verify="required" required/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="sex" value="男" title="男" checked/>
+                    <input type="radio" name="sex" value="女" title="女"/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">联系方式</label>
+                <div class="layui-input-block">
+                    <input name="phone" placeholder="请输入联系方式" type="text" class="layui-input" lay-verify="enphone"/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">电子邮箱</label>
+                <div class="layui-input-block">
+                    <input name="email" placeholder="请输入电子邮箱" type="text" class="layui-input" lay-verify="enemail"/>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item model-form-footer">
+            <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
+            <button class="layui-btn" lay-filter="user-form-submit" lay-submit>保存</button>
+        </div>
+</form>
+
+<script>
+    layui.use(['layer', 'crab', 'form'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+
+        form.render('radio');
+
+        // 个人信息
+        crab.get('/sys/user/info',{},function(data){
+            form.val('user-form', data);
+        });
+
+        // 表单提交事件
+        form.verify({
+            enphone: function(value, item){ //value：表单的值、item：表单的DOM对象
+                if(value!== '' && !new  RegExp("^$|^1\\d{10}$").test(value)){
+                    return '请输入正确的手机号';
+                }
+            },
+            enemail:function(value, item){
+                if(value!== '' && !new  RegExp("^[a-z0-9]+([._\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$").test(value)){
+                    return '邮箱格式不正确';
+                }
+            }
+        }).on('submit(user-form-submit)', function (data) {
+            var url = '/sys/user/info/edit';
+            crab.put(url, data.field, function () {
+                layer.msg('修改成功', {icon: 1});
+                var user = crab.getUser();
+                if(user.nickName !== data.field.nickName){
+                    user.nickName = data.field.nickName;
+                    crab.putUser(user);
+                    var vm = $('.layui-layout-admin .layui-header').vm();
+                    vm.set({nickName:user.nickName});
+                }
+                crab.finishPopupCenter();
+            });
+            return false;
+        });
+    });
+</script>

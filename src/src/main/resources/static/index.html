@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta charset="utf-8"/>
+    <title>项目管理系统V1.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="icon" href="/assets/images/favicon.ico">
+    <link rel="stylesheet" href="/assets/libs/layui/css/layui.css"/>
+    <link rel="stylesheet" href="/assets/css/admin.css"/>
+    <link rel="stylesheet" href="/module/formSelects/formSelects-v4.css"/>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <!-- 头部 -->
+    <div class="layui-header" p-com="header"></div>
+    <!-- 侧边栏 -->
+    <div class="layui-side" p-com="side"></div>
+    <!-- 主体部分 -->
+    <div class="layui-body" style="bottom:0">
+        <div class="layui-tab" lay-allowClose="true" lay-filter="admin-pagetabs">
+            <ul class="layui-tab-title"></ul>
+            <div class="layui-tab-content"></div>
+        </div>
+        <div class="layui-icon admin-tabs-control layui-icon-prev" ew-event="leftPage"></div>
+        <div class="layui-icon admin-tabs-control layui-icon-next" ew-event="rightPage"></div>
+        <div class="layui-icon admin-tabs-control layui-icon-down">
+            <ul class="layui-nav admin-tabs-select" lay-filter="admin-pagetabs-nav">
+                <li class="layui-nav-item" lay-unselect>
+                    <a href="javascript:;"></a>
+                    <dl class="layui-nav-child layui-anim-fadein">
+                        <dd ew-event="closeThisTabs" lay-unselect><a href="javascript:;">关闭当前标签页</a></dd>
+                        <dd ew-event="closeOtherTabs" lay-unselect><a href="javascript:;">关闭其它标签页</a></dd>
+                        <dd ew-event="closeAllTabs" lay-unselect><a href="javascript:;">关闭全部标签页</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- 底部 -->
+    <!--div class="layui-footer">
+
+        <span class="pull-right">Copyright © 2018 Crab 1.0 WEB 快速开发框架</span>
+    </div-->
+    <!-- 手机屏幕遮罩层 -->
+    <div class="site-mobile-shade"></div>
+</div>
+<!-- 加载动画，移除位置在common.js中 -->
+<div class="page-loading">
+    <div class="rubik-loader"></div>
+</div>
+<script type="text/javascript" src="/assets/libs/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="/assets/libs/q.js"></script>
+<script type="text/javascript" src="/assets/libs/pandyle.min.js"></script>
+<script type="text/javascript" src="/assets/libs/layui/layui.js"></script>
+<script type="text/javascript" src="/assets/libs/bigNumber.js"></script>
+<script type="text/javascript" src="/assets/libs/jsdk.js"></script>
+<script>
+    layui.config({
+        base: 'module/',
+        version: true
+    }).extend({
+        formSelects: 'formSelects/formSelects-v4',
+        inputSelect: 'inputSelect/inputSelect-v1.0',
+        treeTable: 'treeTable/treeTable',
+        iconPicker: 'iconPicker/iconPicker'
+    }).use(['index', 'crab', 'element'], function () {
+        var $ = layui.jquery;
+        var element = layui.element;
+        var crab = layui.crab;
+        var index = layui.index;
+
+        // 检查是否登录
+        var user = crab.getUser();
+        console.log(user);
+        if (!user) {
+            location.replace('login.html');
+            return;
+        }
+        // 检查多标签功能是否开启
+        index.checkPageTabs();
+
+        // 用户信息
+        $('.layui-layout-admin .layui-header').vm(user);
+
+        // 获取当前用户菜单信息
+        crab.getMenus('/sys/resource/menu', user, function (menus) {
+            if (menus) {
+                index.initLeftNav(menus);
+            }
+            element.render('nav');
+            index.bindEvent();
+        });
+    });
+</script>
+</body>
+</html>

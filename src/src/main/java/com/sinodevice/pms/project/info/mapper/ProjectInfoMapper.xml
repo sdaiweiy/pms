@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.project.info.mapper.ProjectInfoMapper">
+
+    <select id="page" resultType="com.sinodevice.pms.project.info.vo.ProjectInfoVo">
+        SELECT P1.*,S1.REAL_NAME AS RESPONSER_NAME,
+        (SELECT GROUP_CONCAT(USER_ID) FROM PROJECT_INFO_USER WHERE PROJECT_ID = P1.ID) AS USER_LIST
+        FROM PROJECT_INFO P1 JOIN SYS_USER S1 ON P1.RESPONSER = S1.ID
+        <where>
+            AND P1.DELETED = 0
+            <if test="projectInfo.name != null and projectInfo.name != ''">
+                <bind name="projectInfo.name" value="'%' + projectInfo.name + '%'"/>
+                AND P1.name LIKE #{projectInfo.name}
+            </if>
+            <if test="projectInfo.code != null">
+                AND P1.CODE = #{projectInfo.code}
+            </if>
+            <if test="projectInfo.status != null">
+                AND P1.STATUS = #{projectInfo.status}
+            </if>
+        </where>
+    </select>
+
+    <select id="listByUserId" resultType="com.sinodevice.pms.project.info.entity.ProjectInfo">
+        SELECT * FROM project_info WHERE RESPONSER = #{userId} OR ID IN (
+               SELECT DISTINCT PROJECT_ID FROM project_info_user WHERE USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="listProjectStatus" resultType="com.sinodevice.pms.project.info.vo.ProjectStatusVo">
+        SELECT P1.*,P2.TOTAL,P3.FINISH,P4.UN_FINISH,P5.WORK_HOUR,P6.THIS_WEEK_COUNT,S1.REAL_NAME
+        FROM project_info P1 LEFT JOIN (
+        SELECT PROJECT_ID,COUNT(1) AS TOTAL FROM project_task GROUP BY PROJECT_ID
+        ) P2 ON P1.ID = P2.PROJECT_ID
+        LEFT JOIN (
+        SELECT PROJECT_ID,COUNT(1) AS FINISH FROM project_task WHERE STATUS = 2 GROUP BY PROJECT_ID
+        ) P3 ON P1.ID = P3.PROJECT_ID
+        LEFT JOIN (
+        SELECT PROJECT_ID,COUNT(1) AS UN_FINISH FROM project_task WHERE (STATUS = 0 OR STATUS = 1 OR STATUS = 3) GROUP BY PROJECT_ID
+        ) P4 ON P1.ID = P4.PROJECT_ID
+        LEFT JOIN (
+        SELECT t2.PROJECT_ID,SUM(WORK_HOUR) AS WORK_HOUR
+        FROM project_task_process t1 JOIN project_task t2 on t1.task_id = t2.id GROUP BY PROJECT_ID
+        ) P5 ON P1.ID = P5.PROJECT_ID
+        LEFT JOIN (
+        SELECT PROJECT_ID,COUNT(1) AS THIS_WEEK_COUNT
+        FROM project_task where STATUS = 2 and REAL_END_TIME <![CDATA[ >= ]]> CONCAT(#{beginDate},' 00:00:00')
+        and REAL_END_TIME <![CDATA[ <= ]]> CONCAT(#{endDate},' 23:59:59')
+        GROUP BY PROJECT_ID
+        ) P6 ON P1.ID = P6.PROJECT_ID
+        JOIN SYS_USER S1 ON P1.RESPONSER = S1.ID
+        ORDER BY WORK_HOUR DESC
+    </select>
+
+</mapper>

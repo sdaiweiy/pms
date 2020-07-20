@@ -1,0 +1,90 @@
+<!-- 参数表单弹窗 -->
+<form id="project-task-form" lay-filter="project-task-form" autocomplete="off" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <input name="taskId" type="hidden"/>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">任务名称</label>
+        <div class="layui-input-block">
+            <input name="taskName" type="text" class="layui-input" readonly/>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">完成时间</label>
+        <div class="layui-input-block">
+            <input type="text" class="layui-input" name="endTime" id="endTime" readonly placeholder="请选择完成时间">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">任务耗时</label>
+        <div class="layui-input-block">
+            <input type="text" class="layui-input" name="workHour" id="workHour" readonly placeholder="0">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">完成说明</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入备注" class="layui-textarea" maxlength="255" lay-verify="required"
+                      required></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="project-task-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+<script>
+    layui.use(['layer', 'crab', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var edit = false;
+        var laydate = layui.laydate;
+        var taskBeginTime = null;
+
+        var endTime = laydate.render({
+            elem: '#endTime',
+            type: 'datetime',
+            format: 'yyyy-MM-dd HH:mm',
+            max: +1,
+            value: new Date(),
+            done: function () {
+                var temp2 = endTime.config.dateTime;
+                var end = new Date(temp2.year, temp2.month, temp2.date, temp2.hours, temp2.minutes, temp2.seconds);
+                calcWorkHour(end);
+            }
+        });
+
+        function calcWorkHour(endTime) {
+            var hour = ((endTime.getTime() - taskBeginTime.getTime()) / 1000 / 3600).toFixed(1);
+            $('#workHour').val(new BigNumber(hour).plus(projectTaskInfo.workHour).toFixed(1));
+        }
+
+        // 编辑的参数信息
+        var projectTaskInfo = crab.getFormData();
+
+        crab.get("/project/task/process/getTaskWorkHour", {taskId: projectTaskInfo.taskId}, function (data) {
+            taskBeginTime = new Date(data.beginTime[0], data.beginTime[1] - 1, data.beginTime[2], data.beginTime[3], data.beginTime[4], 0);
+            projectTaskInfo.workHour = data.workHour ? data.workHour : 0;
+        }, false, false);
+
+        if (projectTaskInfo) {
+            form.val('project-task-form', projectTaskInfo);
+        }
+        form.render();
+        calcWorkHour(new Date());
+
+        // 表单提交事件
+        form.on('submit(project-task-form-submit)', function (data) {
+            crab.post('/project/task/process/finish', data.field, function () {
+                layer.msg('操作成功!', {icon: 1});
+                crab.finishPopupCenter();
+            });
+            return false;
+        });
+
+    });
+</script>

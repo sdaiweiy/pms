@@ -1,0 +1,70 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">访问日志</h2>
+        <span class="layui-breadcrumb pull-right">
+            <a><cite>系统监控</cite></a>
+            <a><cite>访问日志</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="searchForm" onsubmit="return false;">
+                账号：<input name="username" class="layui-input search-input" type="text" placeholder="输入账号"/>&emsp;
+                <!--用户名：<input name="nickName" class="layui-input search-input" type="text" placeholder="输入用户名"/>&emsp;-->
+                <button id="user-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索</button>
+            </form>
+        </div>
+        <table class="layui-table" id="log-table" lay-filter="log-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="log-table-bar">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script>
+    layui.use(['table', 'config', 'crab'], function () {
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+
+        // 渲染表格
+        var userTable = table.render({
+            elem: '#log-table',
+            toolbar: '#user-toolbar',
+            url: config.base_server + '/sys/log/page',
+            parseData: config.parseData,
+            page: true,
+            cols: [[
+                /*{type: 'checkbox', fixed: 'left'},*/
+                {field: 'username', title: '账号', width: 120},
+                {field: 'uri', title: '请求URI', width: 160},
+                {field: 'ip', title: 'IP 地址', width: 120},
+                {field: 'params', title: '请求参数'},
+                {field: 'remark', title: '备注', width: 120},
+                {field: 'createTime', title: '创建时间', sort: true, width: 150},
+                {fixed: 'right', align: 'center', toolbar: '#log-table-bar', title: '操作', width: 80}
+            ]]
+        });
+        // 表格操作列事件
+        table.on('tool(log-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条日志吗？', function () {
+                    crab.deleteRow(obj, '/sys/log/' + obj.data.id);
+                });
+            }
+        });
+
+        // 搜索按钮点击事件
+        $('#user-btn-search').click(function () {
+            userTable.reload({where: crab.getSearchForm()});
+        });
+    });
+</script>

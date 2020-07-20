@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.report.week.mapper.ReportWeekDetailsMapper">
+
+    <select id="list" resultType="com.sinodevice.pms.report.week.vo.ReportWeekDetailsVo">
+        SELECT R1.*,S1.REAL_NAME,P1.REMARK AS TASK_REMARK
+        FROM report_week_details R1 JOIN report_week R2 ON R2.DELETED = 0 AND R1.REPORT_ID = R2.ID AND R2.WEEK_INDEX = #{weekIndex}
+        JOIN SYS_USER S1 ON R2.USER_ID = S1.ID
+        LEFT JOIN project_task_process P1 ON R1.TASK_ID = P1.TASK_ID AND P1.USER_ID = R2.USER_ID
+        ORDER BY S1.REAL_NAME ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,72 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">组织管理</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>系统管理</cite></a>
+          <a><cite>组织管理</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <div id="orgChart"></div>
+    </div>
+</div>
+<link href="/assets/libs/orgChart/org.css" media="all" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="/assets/libs/orgChart/org.js"></script>
+<script type="text/javascript">
+    function editOrg(crab, edit, node, top, form) {
+        var data = edit ? node.data : {pid: node.data.id};
+        data.edit = edit;
+        crab.putFormData(data);
+        crab.popupCenter({
+            title: edit ? '编辑组织' : '添加组织',
+            path: '/components/sys/org/org-form.html',
+            finish: function () {
+                loadOrg(crab, form);
+            }
+        });
+    }
+
+    // 加载组织树
+    function loadOrg(crab, form) {
+        crab.get('/sys/org/all/list', {}, function (data) {
+            $('#orgChart').orgChart({
+                data: data,
+                showControls: crab.getUser().id == 10001,
+                newNodeText: '添加子部门',
+                onAddNode: function (node) {
+                    editOrg(crab, false, node, false);
+                    //orgChart.newNode(node.data.id);
+                },
+                onDeleteNode: function (node) {
+                    layer.confirm('确定要删除该组织信息吗？', function () {
+                        crab.delete('/sys/org/' + node.data.id, {}, function (data) {
+                            layer.msg('删除成功', {icon: 1, time: 1500}, function () {
+                                // 重新渲染
+                                loadOrg(crab, form);
+                            });
+                        });
+                    });
+                },
+                onClickNode: function (node) {
+                    editOrg(crab, true, node, false);
+                }
+            });
+
+            if (crab.getUser().id != 10001) {
+                $('.node h2').css('line-height', '40px').css('font-weight', 'bold');
+            }
+        });
+    }
+
+    layui.use(['form', 'table', 'config', 'crab'], function () {
+        var form = layui.form;
+        var crab = layui.crab;
+
+        $('#add').click(function () {
+            editOrg(crab, false, {data: {id: 0, pid: 0}}, true, form);
+        });
+
+        // 默认加载
+        loadOrg(crab, form);
+    });
+</script>

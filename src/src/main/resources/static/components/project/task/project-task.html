@@ -1,0 +1,295 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">项目管理</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>项目管理</cite></a>
+          <a><cite>任务管理</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="project-task-searchForm" onsubmit="return false;" autocomplete="off">
+                项目名称： <select name="projectId" id="projectList" lay-filter="project-select"></select>&emsp;
+                所属模块： <select name="moduleId" id="moduleList"></select>&emsp;
+                人员： <select name="taskUsers" id="userList"></select>&emsp;
+                任务状态： <select name="status">
+                <option value="">全部</option>
+                <option value="0">未开始</option>
+                <option value="1">进行中</option>
+                <option value="2">已完成</option>
+                <option value="3">已暂停</option>
+                <option value="4">已取消</option>
+                <option value="5">已关闭</option>
+            </select>&emsp;
+                <button id="project-task-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索
+                </button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="project-task-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>添加</button>
+            </div>
+        </script>
+        <table class="layui-table" id="project-task-table" lay-filter="project-task-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="project-task-table-bar">
+    {{#  if(d.createBy == layui.crab.getUser().id && d.status == 0){ }}
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    {{#  } }}
+    {{#  if(d.taskUnStartUsers.indexOf(layui.crab.getUser().id) > -1){ }}
+    <a class="layui-btn layui-btn-xs" lay-event="start">开始</a>
+    {{#  } }}
+    {{#  if(d.status == 1 && d.taskUnStartUsers.indexOf(layui.crab.getUser().id) == -1 && d.taskUsers.indexOf(layui.crab.getUser().id) > -1 && d.taskUnFinishUsers.indexOf(layui.crab.getUser().id) > -1 && d.taskPauseUsers.indexOf(layui.crab.getUser().id) == -1){ }}
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="pause">暂停</a>
+    {{#  } }}
+    {{#  if(d.status == 1 && d.taskPauseUsers.indexOf(layui.crab.getUser().id) > -1  && d.taskUnFinishUsers.indexOf(layui.crab.getUser().id) > -1){ }}
+    <a class="layui-btn layui-btn-xs" lay-event="continue">继续</a>
+    {{#  } }}
+    {{#  if(d.status == 1 && d.taskUnStartUsers.indexOf(layui.crab.getUser().id) == -1 && d.taskUnFinishUsers.indexOf(layui.crab.getUser().id) > -1 && d.taskPauseUsers.indexOf(layui.crab.getUser().id) == -1){ }}
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="finished">完成</a>
+    {{#  } }}
+</script>
+
+<!-- 表单弹窗 -->
+<script type="text/html" id="project-time-model">
+    <form id="project-time-form" lay-filter="project-time-form" class="layui-form model-form">
+        <input name="taskId" type="hidden"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">时间</label>
+            <div class="layui-input-block">
+                <input name="time" id="projectTime" placeholder="请选择时间" type="text" class="layui-input" readonly
+                       lay-verify="required" required/>
+            </div>
+        </div>
+        <div class="layui-form-item model-form-footer">
+            <button class="layui-btn layui-btn-primary close" type="button">取消</button>
+            <button class="layui-btn" lay-filter="project-time-form-submit" lay-submit>确定</button>
+        </div>
+    </form>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'treeTable', 'laydate'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var laydate = layui.laydate;
+        var operUrl = '';
+
+        initProjectSelect();
+        initUserList();
+
+        // 渲染表格
+        var taskTable = table.render({
+            elem: '#project-task-table',
+            toolbar: '#project-task-toolbar',
+            url: config.base_server + '/project/task/page',
+            parseData: config.parseData,
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {
+                    field: 'name', title: '任务名称', event: 'details', width: 300, templet: function (d) {
+                        return '<span class="link">' + d.name + '</span>';
+                    }
+                },
+                {field: 'projectName', title: '所属项目', width: 140},
+                {field: 'moduleName', title: '所属模块', width: 120},
+                {
+                    field: 'status', title: '状态', width: 80, templet: function (d) {
+                        var statusList = {
+                            0: '<span class="layui-badge layui-bg-gray">未开始</span>',
+                            1: '<span class="layui-badge layui-bg-green">进行中</span>',
+                            2: '<span class="layui-badge layui-bg-blue">已完成</span>',
+                            3: '<span class="layui-badge">已暂停</span>',
+                            4: '<span class="layui-badge layui-bg-orange">已取消</span>',
+                            5: '<span class="layui-badge layui-bg-cyan">已关闭</span>'
+                        };
+                        return statusList[d.status];
+                    }
+                },
+                {
+                    field: 'planHour', title: '预计', width: 60, templet: function (d) {
+                        return d.planHour + 'h';
+                    }
+                },
+                {
+                    field: 'workHourSum', title: '消耗', width: 60, templet: function (d) {
+                        return d.workHourSum + 'h';
+                    }
+                },
+                {
+                    field: 'planHour', title: '剩余', width: 60, templet: function (d) {
+                        return d.planHour - d.workHourSum + 'h';
+                    }
+                },
+                {field: 'createByName', title: '创建人', width: 80, hide: true},
+                {field: 'taskUsersName', title: '完成人', width: 150},
+                {field: 'planBeginDate', title: '计划开始时间', width: 115},
+                {field: 'planEndDate', title: '计划结束时间', width: 115},
+                {field: 'taskBeginTime', title: '实际开始时间', width: 150},
+                {field: 'taskEndTime', title: '实际结束时间', width: 150},
+                {field: 'createTime', title: '创建时间', sort: true, width: 150, hide: true},
+                {fixed: 'right', align: 'center', toolbar: '#project-task-table-bar', title: '操作', width: 200}
+            ]]
+        });
+
+        // 表格顶部操作列
+        table.on('toolbar(project-task-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModel();
+            }
+        });
+
+        // 表格操作列事件
+        table.on('tool(project-task-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                // 修改
+                showEditModel(data);
+            } else if (layEvent == 'details') {
+                data.details = true;
+                showEditModel(data);
+            } else if (layEvent == 'start') {
+                operUrl = '/project/task/process/start';
+                openTimeDialog(data.id);
+            } else if (layEvent == 'finished') {
+                crab.get("/project/task/process/getByTaskId", {taskId: data.id}, function (details) {
+                    if (details) {
+                        details.taskName = data.name;
+                        crab.putFormData(details);
+
+                        crab.popupCenter({
+                            title: '完成任务',
+                            path: '/components/project/task/project-task-finish-form.html',
+                            finish: function () {
+                                taskTable.reload('project-task-table', {});
+                            }
+                        });
+                    }
+                });
+            } else if (layEvent == 'pause') {
+                operUrl = '/project/task/process/pause';
+                openTimeDialog(data.id);
+            } else if (layEvent == 'continue') {
+                operUrl = '/project/task/process/continue';
+                openTimeDialog(data.id);
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            crab.putFormData(data);
+            crab.popupCenter({
+                title: data ? (data.details ? '查看任务信息' : '修改任务信息') : '添加任务信息',
+                path: '/components/project/task/project-task-form.html',
+                area: '700px',
+                finish: function () {
+                    taskTable.reload('project-task-table', {});
+                }
+            });
+        };
+
+        // 搜索按钮点击事件
+        $('#project-task-btn-search').click(function () {
+            taskTable.reload({where: crab.getSearchForm('#project-task-searchForm')});
+        });
+
+        form.on('select(project-select)', function (data) {
+            if (data.value) {
+                initModuleSelect(data.value);
+            } else {
+                $('#moduleList').html('').append('<option value="">请选择项目</option>');
+                form.render();
+            }
+        });
+
+        // 获取所有项目信息
+        function initProjectSelect() {
+            crab.get("/project/info/listUserId", {}, function (data) {
+                var html = '<option value="">请选择项目</option>';
+                for (var i = 0; i < data.length; i++) {
+                    html += '<option  value="' + data[i].id + '">' + data[i].name + '</option>';
+                }
+                $('#projectList').append(html);
+                form.render();
+            }, false, false);
+        }
+
+
+        function initModuleSelect(projectId) {
+            // 获取所有项目信息
+            var html = '<option value="">请选择</option>';
+
+            crab.get("/project/module/list", {projectId: projectId}, function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    html += '<option value="' + data[i].id + '">' + data[i].name + '</option>';
+                }
+                $('#moduleList').html('').append(html);
+                form.render();
+            }, false, false);
+        }
+
+        function initUserList() {
+            crab.get("/sys/user/list", {}, function (data) {
+                var html = '<option value="">请选择</option>';
+                for (var i = 0; i < data.length; i++) {
+                    html += '<option  value="' + data[i].id + '">' + data[i].realName + '</option>';
+                }
+                $('#userList').append(html);
+                form.render();
+            });
+        }
+
+        function openTimeDialog(taskId) {
+            layer.open({
+                type: 1,
+                title: '选择时间',
+                area: '450px',
+                offset: '120px',
+                content: $('#project-time-model').html(),
+                success: function () {
+                    $('#project-time-form')[0].reset();
+                    initDate();
+                    form.val('project-time-form', {taskId: taskId});
+
+                    $('#project-time-form .close').click(function () {
+                        layer.closeAll('page');
+                    });
+                }
+            });
+        }
+
+        // 表单提交事件
+        form.on('submit(project-time-form-submit)', function (data) {
+            crab.post(operUrl, data.field, function (res) {
+                if (res) {
+                    layer.msg("操作成功!", {icon: 1, time: 1000});
+                    taskTable.reload('project-task-table', {});
+                }
+                layer.closeAll('page');
+            });
+            return false;
+        });
+
+        function initDate() {
+            laydate.render({
+                elem: '#projectTime',
+                type: 'datetime',
+                format: 'yyyy-MM-dd HH:mm',
+                max: +1,
+                value: new Date()
+            });
+        }
+    });
+</script>
+

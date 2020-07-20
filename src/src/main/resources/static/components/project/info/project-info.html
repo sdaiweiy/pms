@@ -1,0 +1,110 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">项目管理</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>项目管理</cite></a>
+          <a><cite>项目信息</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="searchForm" onsubmit="return false;" autocomplete="off">
+                项目名称：<input name="name" class="layui-input search-input" type="text" placeholder="输入项目名称"/>&emsp;
+                项目代号：<input name="code" class="layui-input search-input" type="text" placeholder="输入项目代号"/>&emsp;
+                <button id="project-info-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索
+                </button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="project-info-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>添加</button>
+            </div>
+        </script>
+        <table class="layui-table" id="project-info-table" lay-filter="project-info-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="project-info-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+
+        // 渲染表格
+        var projectTable = table.render({
+            elem: '#project-info-table',
+            toolbar: '#project-info-toolbar',
+            url: config.base_server + '/project/info/page',
+            parseData: config.parseData,
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'name', title: '名称', width: 200},
+                {field: 'code', title: '代号', width: 150},
+                {field: 'responserName', title: '负责人', width: 100},
+                {
+                    field: 'status', title: '状态', width: 100, templet: function (d) {
+                        var statusList = {
+                            0: '<span class="layui-badge layui-bg-gray">未开始</span>',
+                            1: '<span class="layui-badge layui-bg-green">进行中</span>',
+                            2: '<span class="layui-badge layui-bg-blue">已完成</span>',
+                            3: '<span class="layui-badge">已暂停</span>'
+                        };
+                        return statusList[d.status];
+                    }
+                },
+                {field: 'createTime', title: '创建时间', sort: true, width: 150},
+                {fixed: 'right', align: 'center', toolbar: '#project-info-table-bar', title: '操作', width: 120}
+            ]]
+        });
+        // 表格顶部操作列
+        table.on('toolbar(project-info-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModel();
+            }
+        });
+        // 表格操作列事件
+        table.on('tool(project-info-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                // 修改
+                showEditModel(data);
+            } else if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条项目信息吗？', function () {
+                    crab.deleteRow(obj, '/project/info/' + obj.data.id);
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            crab.putFormData(data);
+            crab.popupCenter({
+                title: data ? '修改项目信息' : '添加项目信息',
+                path: '/components/project/info/project-info-form.html',
+                finish: function () {
+                    projectTable.reload('project-info-table', {});
+                }
+            });
+        };
+
+        // 搜索按钮点击事件
+        $('#project-info-btn-search').click(function () {
+            projectTable.reload({where: crab.getSearchForm()});
+        });
+
+    });
+</script>

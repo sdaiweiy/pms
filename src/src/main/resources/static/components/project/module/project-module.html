@@ -1,0 +1,119 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">项目管理</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>项目管理</cite></a>
+          <a><cite>项目模块管理</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="project-module-searchForm" onsubmit="return false;" autocomplete="off">
+                项目名称： <select name="projectList" id="projectList" lay-filter="project-select"></select>&emsp;
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="project-module-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>添加</button>
+            </div>
+        </script>
+        <table class="layui-table" id="project-module-table" lay-filter="project-module-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="project-module-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'treeTable'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var treeTable = layui.treeTable, tableId = '#project-module-table';
+
+        // 获取所有项目信息
+        crab.get("/project/info/listUserId", {}, function (data) {
+            var html = '';
+            for (var i = 0; i < data.length; i++) {
+                html += '<option ' + (i == 0 ? 'selected' : '') + ' value="' + data[i].id + ' ">' + data[i].name + '</option>';
+            }
+            $('#projectList').append(html);
+            form.render();
+        }, false, false);
+
+        // 渲染表格
+        var renderTable = function (projectId) {
+            treeTable.render({
+                treeColIndex: 1,
+                treeSpid: 0,
+                treeIdName: 'id',
+                treePidName: 'pid',
+                treeDefaultClose: false,
+                elem: tableId,
+                toolbar: '#project-module-toolbar',
+                url: config.base_server + '/project/module/list?projectId=' + projectId,
+                cols: [[
+                    {type: 'numbers'},
+                    {field: 'name', title: '名称', width: 300},
+                    {field: 'sort', title: '排序', width: 60, align: 'center'},
+                    {field: 'remark', title: '备注'},
+                    {fixed: 'right', align: 'center', toolbar: '#project-module-table-bar', title: '操作', width: 120}
+                ]]
+            });
+        };
+        renderTable($('#projectList').val());
+
+        // 表格顶部操作列
+        table.on('toolbar(project-module-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModel({projectId: $('#projectList').val()});
+            }
+        });
+
+        // 表格操作列事件
+        table.on('tool(project-module-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                // 修改
+                showEditModel(data);
+            } else if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条模块信息吗？', function () {
+                    crab.deleteRow(obj, '/project/module/' + obj.data.id);
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            crab.putFormData(data);
+            crab.popupCenter({
+                title: data ? '修改模块信息' : '添加模块信息',
+                path: '/components/project/module/project-module-form.html',
+                finish: function () {
+                    renderTable($('#projectList').val());
+                }
+            });
+        };
+
+        form.on('select(project-select)', function (data) {
+            renderTable(data.value);
+        })
+
+    });
+</script>
+
+<style type="text/css">
+    #project-module-searchForm input {
+        width: 200px;
+    }
+</style>

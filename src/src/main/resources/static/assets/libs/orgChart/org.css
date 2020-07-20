@@ -1,0 +1,19 @@
+div.orgChart{margin:10px;padding:20px}
+div.orgChart h2{margin:0;font-size:16px;font-weight:400;min-height:20px}
+div.orgChart h2:hover{background:#fcfaca;cursor:text}
+div.orgChart ul{list-style:none;margin:4px;padding:0;font-size:.8em;text-align:left}
+div.orgChart ul.stack,div.orgChart ul.stack ul{text-align:center}
+div.orgChart table{width:100%}
+div.orgChart tr.lines td.line{width:1px;height:20px}
+div.orgChart tr.lines td.top{border-top:1px dashed #000}
+div.orgChart tr.lines td.left{border-right:1px dashed #000}
+div.orgChart tr.lines td.right{border-left:0 dashed #000}
+div.orgChart tr.lines td.half{width:50%}
+div.orgChart td{text-align:center;vertical-align:top;padding:0 2px}
+div.orgChart div.node{cursor:default;border:1px solid #e7e7e7;display:inline-block;padding:5px;width:110px;height:40px;background:#fff;background:-moz-linear-gradient(top,#fff 0,#fbfbfb 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0,#fff),color-stop(100%,#fbfbfb));background:-webkit-linear-gradient(top,#fff 0,#fbfbfb 100%);background:-o-linear-gradient(top,#fff 0,#fbfbfb 100%);background:-ms-linear-gradient(top,#fff 0,#fbfbfb 100%);background:linear-gradient(to bottom,#fff 0,#fbfbfb 100%);line-height:1.3em;border-radius:4px;-moz-border-radius:4px;-webkit-border-radius:4px;position:relative;box-shadow:1px 1px 0 #ddd}
+.org-add-button,.org-confirm-del-button,.org-del-button{position:absolute;font-size:12px}
+.org-add-button{bottom:3px;left:5px;padding-left:13px;background:url(./add.png) no-repeat 0 3px}
+.org-add-button:hover,.org-del-button:hover{background-color:#eef;border-radius:2px;cursor:pointer}
+.org-del-button{background:url(./delete.png) no-repeat;width:12px;height:12px;bottom:7px;right:5px}
+.org-input{width:90px}
+.org-confirm-del-button{display:none}

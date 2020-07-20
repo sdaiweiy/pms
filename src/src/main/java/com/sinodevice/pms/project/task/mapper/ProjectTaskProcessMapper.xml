@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.project.task.mapper.ProjectTaskProcessMapper">
+
+    <select id="listThisWeekTask" resultType="com.sinodevice.pms.project.task.vo.ProjectTaskProcessVo">
+        SELECT P1.ID,P1.TASK_ID,P1.USER_ID,P1.REMARK,P1.BEGIN_TIME,P1.END_TIME,P1.`STATUS`,P2.NAME AS TASK_NAME,
+	    (SELECT SUM(P3.WORK_HOUR) FROM  project_task_process_details P3 WHERE P1.TASK_ID = P3.TASK_ID AND P1.USER_ID = P3.USER_ID) AS WORK_HOUR
+        FROM project_task_process P1 JOIN project_task P2 ON P1.TASK_ID = P2.ID
+        WHERE P1.USER_ID = #{userId}
+        AND (
+            ( P1.BEGIN_TIME <![CDATA[ >= ]]> #{beginTime}  AND  P1.BEGIN_TIME <![CDATA[ <= ]]> #{endTime} ) OR
+            ( P1.END_TIME <![CDATA[ >= ]]> #{beginTime}  AND  P1.END_TIME <![CDATA[ <= ]]> #{endTime} )
+        )
+        ORDER BY P1.BEGIN_TIME ASC
+    </select>
+
+    <select id="getTaskWorkHour" resultType="java.math.BigDecimal">
+        SELECT SUM(WORK_HOUR) FROM PROJECT_TASK_PROCESS_DETAILS WHERE USER_ID = #{userId} AND TASK_ID = #{taskId}
+    </select>
+
+    <select id="getLastBeginTime" resultType="java.time.LocalDateTime">
+        SELECT BEGIN_TIME FROM PROJECT_TASK_PROCESS_DETAILS WHERE USER_ID = #{userId} AND TASK_ID = #{taskId} AND END_TIME IS NULL
+    </select>
+
+</mapper>

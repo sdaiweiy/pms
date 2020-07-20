@@ -1,0 +1,168 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">字典管理</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>系统管理</cite></a>
+          <a><cite>字典管理</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="dict-common-search-form" onsubmit="return false;">
+                名称：<input name="name" id="dict-common-name" class="layui-input search-input" type="text"
+                          placeholder="输入名称"/>&emsp;
+                <button id="dict-common-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索
+                </button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="dict-common-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add" data-auth="dict:add">
+                    <i class="layui-icon">&#xe654;</i>添加
+                </button>
+                <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="expand">
+                    <i class="layui-icon">&#xe6b1;</i>全部展开
+                </button>
+                <button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="fold">
+                    <i class="layui-icon">&#xe656;</i>全部折叠
+                </button>
+            </div>
+        </script>
+
+        <table class="layui-table" id="dict-common-table" lay-filter="dict-common-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="dict-common-table-bar">
+    {{#  if(d.pid != 0){ }}
+    <a class="layui-btn layui-btn-common layui-btn-xs" lay-event="data" data-auth="dict:data">数据</a>
+    {{#  } }}
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit" data-auth="dict:edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" data-auth="dict:remove">删除</a>
+</script>
+
+<!-- 表格状态列 -->
+<script type="text/html" id="dict-common-tpl-status">
+    <input type="checkbox" lay-filter="dict-common-tpl-status" value="{{d.id}}" lay-skin="switch"
+           lay-text="正常|禁用" {{d.status==0?'checked':''}}/>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'treeTable'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+
+        var treeTable = layui.treeTable, tableId = '#dict-common-table';
+
+        // 渲染表格
+        var renderTable = function () {
+            treeTable.render({
+                treeColIndex: 1,
+                treeSpid: 0,
+                treeIdName: 'id',
+                treePidName: 'pid',
+                treeDefaultClose: true,
+                elem: '#dict-common-table',
+                toolbar: '#dict-common-toolbar',
+                defaultToolbar: ['filter'],
+                url: config.base_server + '/dict/common/list',
+                cols: [[
+                    {type: 'numbers'},
+                    {field: 'name', title: '名称', width: 200},
+                    {field: 'code', title: '编码', width: 200},
+                    {field: 'remark', title: '备注'},
+                    {fixed: 'right', align: 'center', toolbar: '#dict-common-table-bar', title: '操作', width: 160}
+                ]]
+            });
+        };
+        renderTable();
+
+        // 搜索按钮点击事件
+        $('#dict-common-btn-search').click(function () {
+            var keyword = $('#dict-common-name').val();
+            searchTreeGrid('#dict-common-table', keyword);
+        });
+
+        function searchTreeGrid(tableId, keyword) {
+            treeTable.expandAll(tableId);
+            var searchCount = 0;
+            $(tableId).next('.treeTable').find('.layui-table-body tbody tr td').each(function () {
+                $(this).css('background-color', 'transparent');
+                var text = $(this).text();
+                if (keyword != '' && text.indexOf(keyword) >= 0) {
+                    $(this).css('background-color', 'rgba(250,230,160,0.5)');
+                    if (searchCount == 0) {
+                        treeTable.expandAll(tableId);
+                        $('html,body').stop(true);
+                        $('html,body').animate({scrollTop: $(this).offset().top - 150}, 500);
+                    }
+                    searchCount++;
+                }
+            });
+            if (keyword == '') {
+                layer.msg("请输入搜索内容", {icon: 5});
+            } else if (searchCount == 0) {
+                layer.msg("没有匹配结果", {icon: 5});
+            }
+        };
+
+        // 表格顶部操作列
+        table.on('toolbar(dict-common-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModel();
+            } else if (obj.event === 'expand') {
+                treeTable.expandAll(tableId);
+            } else if (obj.event === 'fold') {
+                treeTable.foldAll(tableId);
+            }
+        });
+
+        // 表格操作列事件
+        table.on('tool(dict-common-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                // 修改
+                showEditModel(data);
+            } else if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条字典记录吗？', function () {
+                    obj.del = function () {
+                        renderTable();
+                    };
+                    crab.deleteRow(obj, '/dict/common/' + obj.data.id);
+                });
+            } else if (obj.event === 'data') {
+                var path = '/components/dict/common/' + (data.type == 0 ? 'common-data.html' : 'common-tree.html'),
+                    area = data.type == 0 ? ['880px', '500px'] : ['1000px', '500px'];
+
+                crab.putFormData(data);
+                crab.popupCenter({
+                    title: '字典列表',
+                    maxmin: true,
+                    area: area,
+                    path: path
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            crab.putFormData(data);
+            crab.popupCenter({
+                title: data ? '修改字典' : '添加字典',
+                path: '/components/dict/common/common-form.html',
+                finish: function () {
+                    renderTable();
+                }
+            });
+        };
+    });
+</script>

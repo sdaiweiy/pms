@@ -1,0 +1,167 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">服务器监控</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>系统监控</cite></a>
+          <a><cite>服务器监控</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-xs12 layui-col-sm12 layui-col-md4">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-engine"></i>&nbsp;CPU
+                    </div>
+                    <div class="layui-card-body">
+                        <div id="cpu"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-xs12 layui-col-sm12 layui-col-md4">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-engine"></i>&nbsp;总内存
+                    </div>
+                    <div class="layui-card-body">
+                        <div id="ram" class="layui-main"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-xs12 layui-col-sm12 layui-col-md4">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-engine"></i>&nbsp;JVM
+                    </div>
+                    <div class="layui-card-body">
+                        <div id="jvm" class="layui-main"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-console"></i>&nbsp;堆/非堆
+                    </div>
+                    <div class="layui-card-body">
+                        <table class="layui-table" lay-size="sm">
+                            <colgroup>
+                                <col width="50">
+                                <col>
+                                <col>
+                                <col>
+                                <col>
+                            </colgroup>
+                            <thead>
+                            <tr>
+                                <th>属性</th>
+                                <th>初始大小</th>
+                                <th>最大内存</th>
+                                <th>已用内存</th>
+                                <th>可用内存</th>
+                            </tr>
+                            </thead>
+                            <tbody id="jvmHeap"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-xs12 layui-col-sm12 layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-list"></i>&nbsp;磁盘状态
+                    </div>
+                    <div class="layui-card-body">
+                        <table class="layui-table" lay-size="sm">
+                            <colgroup>
+                                <col width="50">
+                                <col>
+                                <col>
+                                <col>
+                                <col>
+                                <col>
+                                <col>
+                            </colgroup>
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>盘符路径</th>
+                                <th>文件系统</th>
+                                <th>盘符类型</th>
+                                <th>总大小</th>
+                                <th>可用大小</th>
+                                <th>已用百分比</th>
+                            </tr>
+                            </thead>
+                            <tbody id="disk"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="/assets/libs/jquery.svgDoughnutChart.min.js"></script>
+<script>
+    layui.use(['config', 'crab'], function () {
+        var config = layui.config;
+        var crab = layui.crab;
+
+        function cpuMemory() {
+            $.get(config.base_server + '/monitor/cpu-memory', function (result) {
+                var data = result.data;
+                // https://github.com/JordiCorbilla/jquery.svgDoughnutChart.js
+                $('#cpu').doughnutChart({
+                    positiveColor: 'orange',
+                    backgroundColor: 'white',
+                    percentage: data.cpu.used.replace('%', ''),
+                    innerText: data.cpu.used,
+                    Title: data.cpu.kernel + ' CPU' + data.cpu.power,
+                    positiveText: data.cpu.used + '(U' + data.cpu.user + ",S" + data.cpu.system + ')',
+                    negativeText: data.cpu.idle
+                });
+                $('#ram').doughnutChart({
+                    positiveColor: 'orange',
+                    backgroundColor: 'white',
+                    percentage: data.system.usedPercentage.replace('%', ''),
+                    innerText: data.system.usedPercentage,
+                    Title: data.system.total,
+                    positiveText: data.system.usedPercentage + ' ' + data.system.used,
+                    negativeText: data.system.availablePercentage + ' ' + data.system.available
+                });
+                $('#jvm').doughnutChart({
+                    positiveColor: 'orange',
+                    backgroundColor: 'white',
+                    percentage: data.jvm.usedPercentage.replace('%', ''),
+                    innerText: data.jvm.usedPercentage,
+                    Title: data.jvm.total,
+                    positiveText: data.jvm.usedPercentage + ' ' + data.jvm.used,
+                    negativeText: data.jvm.availablePercentage + ' ' + data.jvm.available
+                });
+            });
+        }
+
+        // 2 秒刷新一次
+        cpuMemory();
+        var interval = setInterval(function () {
+            if (location.hash == '#!sys-server-monitor') {
+                cpuMemory();
+            } else {
+                clearInterval(interval);
+            }
+        }, 3000);
+
+        crab.get('/monitor/jvm-heap-disk', {}, function (data) {
+            var jh = data.heap, jn = data.nonHeap;
+            $('#jvmHeap').html('<tr><td>堆</td><td>' + jh.init + '</td><td>' + jh.max + '</td><td>' + jh.used + '</td><td>' + jh.committed
+                + '</td></tr><tr><td>非堆</td><td>' + jn.init + '</td><td>' + jn.max + '</td><td>' + jn.used + '</td><td>' + jn.committed + '</td></tr>');
+            var text = '', dl = data.diskList;
+            for (var i = 0; i < dl.length; i++) {
+                var d = dl[i];
+                text += '<tr><td>' + i + '</td><td>' + d.name + '</td><td>' + d.mount + '</td><td>' + d.type + '</td><td>' + d.total;
+                text += '</td><td>' + d.usable + '</td><td>' + d.percentage + '</td></tr>';
+            }
+            $('#disk').html(text);
+        });
+    });
+</script>

@@ -1,0 +1,107 @@
+<!-- 参数表单弹窗 -->
+<form id="project-info-form" lay-filter="project-info-form" autocomplete="off" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">项目名称</label>
+        <div class="layui-input-block">
+            <input name="name" placeholder="请输入项目名称" type="text" class="layui-input" minlength="6" maxlength="100"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">项目代号</label>
+        <div class="layui-input-block">
+            <input name="code" placeholder="请输入项目代号" type="text" class="layui-input" minlength="6" maxlength="100"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">项目负责人</label>
+        <div class="layui-input-block">
+            <select name="responser" id="responser" lay-verify="required" required>
+                <option value="">请选择项目负责人</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">项目干系人</label>
+        <div class="layui-input-block">
+            <select name="userList" xm-select="userList">
+                <option value="">请选择项目干系人</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">项目状态</label>
+        <div class="layui-input-block">
+            <select name="status" lay-verify="required" required>
+                <option value="">请选择项目状态</option>
+                <option value="0">未开始</option>
+                <option value="1">进行中</option>
+                <option value="2">已完成</option>
+                <option value="3">已暂停</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入备注" class="layui-textarea" maxlength="255" lay-verify="required"
+                      required></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="project-info-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+<script>
+    layui.use(['layer', 'crab', 'form', 'formSelects'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var edit = false;
+        var formSelects = layui.formSelects;
+
+        // 编辑的参数信息
+        var projectInfo = crab.getFormData();
+        if (projectInfo) {
+            edit = true;
+            // 回显参数数据
+            form.val('project-info-form', projectInfo);
+        }
+        form.render();
+
+        // 获取所有组织
+        crab.get("/sys/user/list", {}, function (data) {
+            var html = '';
+            for (var i = 0; i < data.length; i++) {
+                var selected = '';
+                if (projectInfo && projectInfo.responser == data[i].id) {
+                    selected = 'selected';
+                }
+                html += '<option ' + selected + ' value="' + data[i].id + ' ">' + data[i].realName + '</option>';
+            }
+            $('#responser').append(html);
+            form.render();
+        });
+
+        // 表单提交事件
+        form.on('submit(project-info-form-submit)', function (data) {
+            crab.request('/project/info/dto', data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                crab.finishPopupCenter();
+            }, edit ? 'PUT' : 'POST');
+            return false;
+        });
+
+        // 上级菜单
+        crab.get('/sys/user/list', {}, function (data) {
+            formSelects.data('userList', 'local', {arr: data, keyVal: 'id', keyName: 'realName'});
+            if (projectInfo) {
+                formSelects.value('userList', projectInfo.userList ? projectInfo.userList.split(",") : [])
+            }
+        });
+
+    });
+</script>

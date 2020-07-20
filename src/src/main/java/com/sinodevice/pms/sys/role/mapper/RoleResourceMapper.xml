@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.sys.role.mapper.RoleResourceMapper">
+
+    <select id="selectZTreeVO" resultType="com.sinodevice.pms.sys.role.vo.ResourceZTreeVO">
+        SELECT r.id,r.pid,r.name,(CASE WHEN s.role_id IS NULL THEN 'false' ELSE 'true' END) AS checked,
+        (CASE r.pid WHEN 0 THEN 'true' ELSE 'false' END) AS open FROM sys_resource r
+        LEFT JOIN sys_role_resource s ON r.id=s.resource_id AND s.role_id=#{roleId}
+        WHERE r.deleted=0 AND r.status=0 ORDER BY r.sort DESC
+    </select>
+</mapper>

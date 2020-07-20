@@ -1,0 +1,122 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">岗位管理</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>系统管理</cite></a>
+          <a><cite>岗位管理</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="searchForm" onsubmit="return false;">
+                名称：<input name="name" class="layui-input search-input" type="text" placeholder="输入名称"/>&emsp;
+                状态：<select name="status" lay-verify="">
+                <option value="">请选择一个状态</option>
+                <option value="0">正常</option>
+                <option value="-1">禁用</option>
+            </select>
+                <button id="post-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索</button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="post-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add" data-auth="post:add">
+                    <i class="layui-icon">&#xe654;</i>添加
+                </button>
+            </div>
+        </script>
+        <table class="layui-table" id="post-table" lay-filter="post-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="post-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit" data-auth="post:edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" data-auth="post:remove">删除</a>
+</script>
+
+<!-- 表格状态列 -->
+<script type="text/html" id="post-tpl-status">
+    <input type="checkbox" lay-filter="post-tpl-status" value="{{d.id}}" lay-skin="switch" data-auth="post:edit"
+           lay-text="正常|禁用" {{d.status==0?'checked':''}}/>
+</script>
+
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+
+        // 渲染表格
+        var postTable = table.render({
+            elem: '#post-table',
+            toolbar: '#post-toolbar',
+            defaultToolbar: ['filter'],
+            url: config.base_server + '/sys/post/page',
+            parseData: config.parseData,
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'name', title: '名称', width: 160},
+                {field: 'code', title: '编码', width: 80},
+                {field: 'sort', title: '排序', width: 80},
+                {field: 'status', templet: '#post-tpl-status', title: '状态', width: 100},
+                {field: 'createdTime', title: '创建时间', width: 150},
+                {fixed: 'right', align: 'center', toolbar: '#post-table-bar', title: '操作', width: 120}
+            ]],
+            where: {'asc': 'sort'}
+        });
+        // 表格顶部操作列
+        table.on('toolbar(post-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModel();
+            }
+        });
+        // 表格操作列事件
+        table.on('tool(post-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                // 修改
+                showEditModel(data);
+            } else if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条岗位记录吗？', function () {
+                    crab.deleteRow(obj, '/sys/post/' + obj.data.id);
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            crab.putFormData(data);
+            crab.popupCenter({
+                title: data ? '修改岗位' : '添加岗位',
+                path: '/components/sys/post/post-form.html',
+                finish: function () {
+                    postTable.reload('post-table', {});
+                }
+            });
+        };
+
+        // 搜索按钮点击事件
+        $('#post-btn-search').click(function () {
+            postTable.reload({where: $.extend({}, {asc: 'sort'}, crab.getSearchForm())});
+        });
+
+        // 修改post状态
+        form.on('switch(post-tpl-status)', function (obj) {
+            crab.put('/sys/post/status_' + obj.elem.value, {
+                status: obj.elem.checked ? 0 : 1
+            }, function () {
+                layer.msg('岗位状态修改成功', {icon: 1});
+            });
+        });
+    });
+</script>

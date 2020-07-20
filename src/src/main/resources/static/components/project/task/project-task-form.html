@@ -1,0 +1,244 @@
+<!-- 参数表单弹窗 -->
+<form id="project-task-form" lay-filter="project-task-form" autocomplete="off" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <input name="status" value="0" type="hidden"/>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label required-tip">任务名称</label>
+                <div class="layui-input-block">
+                    <input name="name" placeholder="请输入任务名称" type="text" class="layui-input" minlength="6"
+                           maxlength="100"
+                           lay-verify="required" required/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label required-tip">所属项目</label>
+                <div class="layui-input-block" style="max-height: 36px;">
+                    <select name="projectId" id="edit-projectList" lay-verify="required"
+                            lay-filter="edit-project-select" required></select>&emsp;
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label required-tip">任务类型</label>
+                <div class="layui-input-block" style="max-height: 36px;">
+                    <select name="type" id="edit-type" lay-verify="required" required></select>&emsp;
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label required-tip">所属模块</label>
+                <div class="layui-input-block" style="max-height: 36px;">
+                    <select name="moduleId" xm-select="moduleId" xm-select-radio lay-verify="required">
+                        <option value="">请选择</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">任务描述</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入任务描述" class="layui-textarea" maxlength="255"
+                      style="min-height: 70px;"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">完成人</label>
+        <div class="layui-input-block">
+            <select name="taskUsers" xm-select="userIds" xm-select-checkbox lay-verify="required">
+                <option value="">请选择任务完成人</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label required-tip">预计耗时</label>
+                <div class="layui-input-block">
+                    <input type="number" class="layui-input" name="planHour" lay-verify="required" required
+                           placeholder="请填写预计耗时">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">开始时间</label>
+                <div class="layui-input-block">
+                    <input type="text" class="layui-input" name="planBeginDate" id="planBeginDate"
+                           placeholder="请选择计划开始时间">
+                </div>
+            </div>
+            <div class="layui-form-item details">
+                <label class="layui-form-label">实际开始</label>
+                <div class="layui-input-block">
+                    <input type="text" class="layui-input" name="realBeginTime" readonly>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label required-tip">任务级别</label>
+                <div class="layui-input-block">
+                    <select name="level" lay-verify="required" required>
+                        <option value="">请选择项目状态</option>
+                        <option value="0">紧急</option>
+                        <option value="1">重要</option>
+                        <option value="2">次要</option>
+                        <option value="3">琐事</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">完成时间</label>
+                <div class="layui-input-block">
+                    <input type="text" class="layui-input" name="planEndDate" id="planEndDate"
+                           placeholder="请选择计划完成时间">
+                </div>
+            </div>
+            <div class="layui-form-item details">
+                <label class="layui-form-label">实际完成</label>
+                <div class="layui-input-block">
+                    <input type="text" class="layui-input" name="realBeginTime" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item details">
+        <label class="layui-form-label">完成说明</label>
+        <div class="layui-input-block">
+            <textarea name="taskRemark" readonly class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item model-form-footer" style="display: none">
+        <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="project-task-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+
+<style type="text/css">
+    .details {
+        display: none;
+    }
+</style>
+
+<script>
+    layui.use(['layer', 'crab', 'form', 'formSelects', 'laydate'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var laydate = layui.laydate;
+        var edit = false;
+        var formSelects = layui.formSelects;
+        var projectTask = crab.getFormData();
+
+        //执行一个laydate实例
+        laydate.render({elem: '#planBeginDate'});
+        laydate.render({elem: '#planEndDate'});
+
+        // 编辑的参数信息
+        if (projectTask) {
+            edit = true;
+            initUsers(projectTask.projectId);
+            if (!projectTask.details) {
+                $('.model-form-footer').show();
+            } else {
+                $('.details').show();
+                $('.model-form-footer').remove();
+            }
+        } else {
+            $('.model-form-footer').show();
+        }
+        form.val('project-task-form', projectTask);
+        form.render();
+
+        initProjectSelect();
+        initTaskType();
+
+        // 表单提交事件
+        form.on('submit(project-task-form-submit)', function (data) {
+            crab.request('/project/task/dto', data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                crab.finishPopupCenter();
+            }, edit ? 'PUT' : 'POST');
+            return false;
+        });
+
+        form.on('select(edit-project-select)', function (data) {
+            if (data.value) {
+                initModuleSelect(data.value);
+                initUsers(data.value);
+            } else {
+                $('#edit-moduleList').html('').append('<option value="">请选择项目</option>');
+                formSelects.data('userIds', 'local', {arr: []});
+                form.render();
+            }
+        });
+
+        // 获取所有项目信息
+        function initProjectSelect() {
+            crab.get("/project/info/listUserId", {}, function (data) {
+                var html = '<option value="">请选择</option>';
+                for (var i = 0; i < data.length; i++) {
+                    var selected = '';
+                    if (projectTask && projectTask.projectId == data[i].id) {
+                        selected = 'selected';
+                        initModuleSelect(projectTask.projectId);
+                    }
+                    html += '<option ' + selected + '  value="' + data[i].id + ' ">' + data[i].name + '</option>';
+                }
+                $('#edit-projectList').append(html);
+                form.render();
+            }, false, false);
+        }
+
+
+        function initModuleSelect(projectId) {
+            // 上级菜单
+            crab.get('/project/module/list', {projectId: projectId}, function (data) {
+                var l = data.length;
+                if (l >= 0) {
+                    var moduleData = [];
+                    for (var i = 0; i < data.length; i++) {
+                        moduleData.push({id: data[i].id, pid: data[i].pid, name: data[i].name, value: data[i].id});
+                    }
+                    formSelects.data('moduleId', 'local', {arr: crab.createTreeData(moduleData, '0')});
+                    if (projectTask) {
+                        formSelects.value('moduleId', [projectTask.moduleId])
+                    }
+                }
+            });
+        }
+
+        function initTaskType() {
+            crab.get("/dict/common-plain/listByCode", {code: 'task-type'}, function (data) {
+                var html = '<option value="">请选择</option>';
+                for (var i = 0; i < data.length; i++) {
+                    var selected = '';
+                    if (projectTask && projectTask.type == data[i].id) {
+                        selected = 'selected';
+                    }
+                    html += '<option ' + selected + '  value="' + data[i].id + ' ">' + data[i].name + '</option>';
+                }
+                $('#edit-type').append(html);
+                form.render();
+            });
+        }
+
+        function initUsers(projectId) {
+            // 上级菜单
+            crab.get('/user/project/info/user/list', {projectId: projectId}, function (data) {
+                formSelects.data('userIds', 'local', {arr: data, keyName: 'realName', keyVal: 'id'});
+                if (projectTask) {
+                    formSelects.value('userIds', projectTask.taskUsers.split(','))
+                }
+            });
+        }
+
+    });
+</script>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.project.task.mapper.ProjectTaskMapper">
+
+    <select id="page" resultType="com.sinodevice.pms.project.task.vo.ProjectTaskVo">
+        SELECT P1.*,P2.NAME AS PROJECT_NAME,P3.NAME AS MODULE_NAME,S1.REAL_NAME AS CREATE_BY_NAME,
+        P4.WORK_HOUR_SUM,P4.TASK_USERS,P4.TASK_USERS_NAME,P5.TASK_UNFINISH_USERS,P4.TASK_REMARK,P6.TASK_UNSTART_USERS,
+        P7.TASK_PAUSE_USERS,P8.TASK_BEGIN_TIME,P8.TASK_END_TIME
+        FROM project_task P1 JOIN project_info P2 ON P1.PROJECT_ID = P2.ID
+        JOIN project_module P3 ON P1.MODULE_ID = P3.ID
+        JOIN sys_user S1 ON P1.CREATE_BY = S1.ID
+        LEFT JOIN (
+            SELECT
+            TASK_ID,SUM(T.WORK_HOUR) AS WORK_HOUR_SUM,
+            GROUP_CONCAT(T.USERS SEPARATOR ',') TASK_USERS_NAME,
+            GROUP_CONCAT(T.USER_ID SEPARATOR ',') TASK_USERS,
+            GROUP_CONCAT(T.REMARK SEPARATOR '\n') TASK_REMARK
+            FROM (
+                SELECT TASK_ID,t1.USER_ID,t1.WORK_HOUR,
+                CONCAT(REAL_NAME,'(',CASE T1.STATUS WHEN 0 THEN '未完成' WHEN 1 THEN '已完成' WHEN 2 THEN '已暂停' end,')') AS USERS,
+                CONCAT(REAL_NAME,':',REMARK) AS REMARK
+                FROM project_task_process t1 join sys_user t2 on t1.USER_ID = t2.ID
+                ) AS T
+                GROUP BY T.TASK_ID
+            ) AS P4 ON P4.TASK_ID = P1.ID
+        LEFT JOIN (
+            SELECT TASK_ID,
+            GROUP_CONCAT(t1.USER_ID SEPARATOR ',') TASK_UNFINISH_USERS
+            FROM project_task_process t1 join sys_user t2 on t1.USER_ID = t2.ID WHERE (T1.STATUS = 0 OR T1.STATUS = 2) GROUP BY TASK_ID
+        ) AS P5 ON P5.TASK_ID = P1.ID
+        LEFT JOIN (
+            SELECT TASK_ID,
+            GROUP_CONCAT(t1.USER_ID SEPARATOR ',') TASK_UNSTART_USERS
+            FROM project_task_process t1 WHERE T1.BEGIN_TIME IS NULL GROUP BY TASK_ID
+        ) AS P6 ON P6.TASK_ID = P1.ID
+        LEFT JOIN (
+            SELECT TASK_ID,
+            GROUP_CONCAT(t1.USER_ID SEPARATOR ',') TASK_PAUSE_USERS
+            FROM project_task_process t1 join sys_user t2 on t1.USER_ID = t2.ID WHERE T1.STATUS = 2 GROUP BY TASK_ID
+        ) AS P7 ON P7.TASK_ID = P1.ID
+        LEFT JOIN (
+            SELECT TASK_ID,MIN(BEGIN_TIME) AS TASK_BEGIN_TIME,MAX(END_TIME) AS TASK_END_TIME FROM project_task_process GROUP BY TASK_ID
+        ) AS P8 ON P8.TASK_ID = P1.ID
+        <where>
+            <if test="projectTask.projectId != null">
+                AND P1.PROJECT_ID = #{projectTask.projectId}
+            </if>
+            <if test="projectTask.moduleId != null">
+                AND P1.MODULE_ID = #{projectTask.moduleId}
+            </if>
+            <if test="projectTask.id != null">
+                AND P1.ID = #{projectTask.id}
+            </if>
+            <if test="projectTask.status != null">
+                AND P1.STATUS = #{projectTask.status}
+            </if>
+            <if test="projectTask.taskUsers != null and projectTask.taskUsers != ''">
+                <bind name="projectTask.taskUsers" value="'%' + projectTask.taskUsers + '%'"/>
+                AND TASK_USERS LIKE #{projectTask.taskUsers}
+            </if>
+            <if test="userId != null and !projectTask.showAll" >
+                AND P1.ID IN (SELECT TASK_ID FROM project_task_process WHERE USER_ID = #{userId})
+            </if>
+        </where>
+        ORDER BY P1.CREATE_TIME DESC
+    </select>
+
+</mapper>

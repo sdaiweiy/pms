@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.sys.resource.mapper.ResourceMapper">
+
+
+    <select id="selectMenuByUserId" resultType="com.sinodevice.pms.sys.resource.entity.Resource">
+        SELECT id,pid,name,type,code,uri,path,icon FROM sys_resource WHERE deleted=0 AND status=0
+        AND id IN (SELECT DISTINCT r.resource_id FROM sys_role_resource r WHERE r.role_id
+        IN (SELECT s.role_id FROM sys_user_role s JOIN sys_user u ON s.user_id=u.id
+        WHERE u.id=#{userId})) ORDER BY sort,id ASC
+    </select>
+
+    <select id="queryChildrenIds" resultType="com.sinodevice.pms.sys.resource.entity.Resource">
+        SELECT id FROM sys_resource WHERE deleted=0 AND FIND_IN_SET(id,queryResourceChildrenIds(#{id}))
+    </select>
+</mapper>

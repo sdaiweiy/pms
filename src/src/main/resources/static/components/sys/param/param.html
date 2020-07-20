@@ -1,0 +1,121 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">参数管理</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>系统管理</cite></a>
+          <a><cite>参数设置</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="searchForm" onsubmit="return false;">
+                名称：<input name="name" class="layui-input search-input" type="text" placeholder="输入名称"/>&emsp;
+                编码：<input name="code" class="layui-input search-input" type="text" placeholder="输入编码"/>&emsp;
+                类型：<select name="sys" lay-verify="">
+                    <option value="">请选择参数类型</option>
+                    <option value="1">系统参数</option>
+                    <option value="0">其他</option>
+                </select>
+                <button id="param-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索</button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="param-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>添加</button>
+                <!--<button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="operate"><i class="layui-icon">&#xe63c;</i>操作日志</button>-->
+            </div>
+        </script>
+        <table class="layui-table" id="param-table" lay-filter="param-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="param-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<!-- 表格状态列 -->
+<script type="text/html" id="param-tpl-sys">
+    <input type="checkbox" lay-filter="param-tpl-sys" value="{{d.id}}" lay-skin="switch"
+           lay-text="是|否" {{d.sys==1?'checked':''}}/>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+
+        // 渲染表格
+        var paramTable = table.render({
+            elem: '#param-table',
+            toolbar: '#param-toolbar',
+            url: config.base_server + '/sys/param/page',
+            parseData: config.parseData,
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'name', title: '名称', width: 160},
+                {field: 'code', title: '编码', width: 200},
+                {field: 'content', title: '内容', width: 200},
+                {field: 'remark', title: '备注'},
+                {field: 'sys', templet: '#param-tpl-sys', title: '系统参数', width: 100},
+                {field: 'createTime', title: '创建时间', sort: true, width: 150},
+                {fixed: 'right', align: 'center', toolbar: '#param-table-bar', title: '操作', width: 120}
+            ]]
+        });
+        // 表格顶部操作列
+        table.on('toolbar(param-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModel();
+            }
+        });
+        // 表格操作列事件
+        table.on('tool(param-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                // 修改
+                showEditModel(data);
+            } else if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条参数记录吗？', function () {
+                    crab.deleteRow(obj, '/sys/param/' + obj.data.id);
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            crab.putFormData(data);
+            crab.popupCenter({
+                title: data ? '修改参数' : '添加参数',
+                path: '/components/sys/param/param-form.html',
+                finish: function () {
+                    paramTable.reload('param-table', {});
+                }
+            });
+        };
+
+        // 搜索按钮点击事件
+        $('#param-btn-search').click(function () {
+            paramTable.reload({where: crab.getSearchForm()});
+        });
+
+        // 修改param状态
+        form.on('switch(param-tpl-sys)', function (obj) {
+            crab.put('/sys/param/sys_' + obj.elem.value, {
+                sys: obj.elem.checked ? 1 : 0
+            }, function () {
+                layer.msg('参数状态修改成功', {icon: 1});
+                crab.refresh();
+            });
+        });
+    });
+</script>

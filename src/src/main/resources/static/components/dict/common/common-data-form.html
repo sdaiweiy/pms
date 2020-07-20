@@ -1,0 +1,58 @@
+<!-- 字典表单弹窗 -->
+<form id="dict-data-form" lay-filter="dict-data-form" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-block">
+            <input name="name" placeholder="请输入名称" type="text" class="layui-input" minlength="2" maxlength="25"
+                   lay-verify="required"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序号</label>
+        <div class="layui-input-block">
+            <input name="sort" placeholder="请输入排序号" value="1" type="number" class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入备注" class="layui-textarea" maxlength="255"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" id="cancelDictData" type="button">取消</button>
+        <button class="layui-btn" lay-filter="dict-data-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+<script>
+    layui.use(['layer', 'crab', 'form'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var edit = false;
+
+        // 编辑的参数信息
+        var dict = crab.getFormData();
+        if (dict && dict.id) {
+            edit = true;
+            // 回显参数数据
+            form.val('dict-data-form', dict);
+        }
+
+        // 取消按钮事件
+        $('#cancelDictData').click(function () {
+            layer.close(layer.index);
+        });
+
+        // 表单提交事件
+        form.on('submit(dict-data-form-submit)', function (data) {
+            data.field.code = dict.code;
+            crab.request('/dict/common-plain', data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                crab.finishPopupCenter();
+            }, edit ? 'PUT' : 'POST');
+            return false;
+        });
+    });
+</script>

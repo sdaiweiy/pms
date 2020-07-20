@@ -1,0 +1,65 @@
+# Spring Boot
+server:
+  port: 9081
+spring:
+  mvc:
+    favicon:
+      enabled: false
+  #  redis:
+  #        database: 0
+  #        host: 127.0.0.1
+  #        port: 6379
+  #        password: 1qaz2wsx@!
+  #  freemarker:
+  #    cache: false    #页面不加载缓存，修改即时生效
+  profiles:
+    # 改成您需要的环境
+    # active: local
+    active: mysql
+    #datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+
+
+# ORM 配置
+mybatis-plus:
+  configuration:
+    cache-enabled: false
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    default-enum-type-handler: org.apache.ibatis.type.EnumOrdinalTypeHandler
+  mapper-locations: classpath:mapper/**/*Mapper.xml
+  type-aliases-package: com.sinodevice.pms.*.entity
+  global-config:
+    banner: false
+    db-config:
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      table-underline: true
+      column-like: true
+
+# 单点登录
+kisso:
+  config:
+    signkey: 123456789123
+    cookie-name: proposal
+    login-url: /login.html
+    logout-url: /login.html
+
+# 日志
+logging:
+  config: classpath:log4j2.xml
+  pattern:
+    console: "%-5level - %msg%n"
+  level:
+    - error
+    - com.memorynotfound=trace
+    - com.sinodevice.pms=trace
+
+# actuator 监控 http://localhost:8088/actuator
+# 监控内容介绍 https://www.cnblogs.com/ityouknow/p/8423590.html
+# 可视化管理 https://www.cnblogs.com/shihaiming/p/8488939.html
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

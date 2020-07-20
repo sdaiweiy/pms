@@ -1,0 +1,31 @@
+<div class="layui-side-scroll">
+    <ul class="layui-nav layui-nav-tree" style="margin-top: 15px;">
+    <script id="sideNav" type="text/html">
+        {{#  layui.each(d, function(index, item){ }}
+        <li class="layui-nav-item">
+            <a href="{{item.uri}}"><i class="layui-icon {{item.icon}}"></i>&emsp;<cite>{{ item.name }}</cite></a>
+            {{# if(item.subMenus&&item.subMenus.length>0){ }}
+            <dl class="layui-nav-child">
+                {{# layui.each(item.subMenus, function(index, subItem){ }}
+                <dd class="layui-nav-item-second">
+                    <a href="{{ subItem.uri }}"><i class="layui-icon {{subItem.icon}}"></i>&emsp;<cite>{{ subItem.name }}</cite></a>
+                    {{# if(subItem.subMenus&&subItem.subMenus.length>0){ }}
+                    <dl class="layui-nav-child">
+                        {{# layui.each(subItem.subMenus, function(index, thrItem){ }}
+                        <dd class="layui-nav-item-third">
+                            <a href="{{ thrItem.uri }}">
+                                <i class="layui-icon {{thrItem.icon}}"></i>&emsp;<cite>{{ thrItem.name }}</cite></a>
+                            </a>
+                        </dd>
+                        {{# }); }}
+                    </dl>
+                    {{# } }}
+                </dd>
+                {{# }); }}
+            </dl>
+            {{# } }}
+        </li>
+        {{#  }); }}
+    </script>
+    </ul>
+</div>
