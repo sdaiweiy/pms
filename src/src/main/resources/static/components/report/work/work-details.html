@@ -1,0 +1,152 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">工作明细</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>日常汇报</cite></a>
+          <a><cite>工作明细</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <h1 class="summary-title text-center" id="summary-title"></h1>
+        <h2 class="summary-title">1.本周累计工作时长</h2>
+        <div class="summary-time"></div>
+        <h2 class="summary-title" style="margin-top:5px;">2.本周每人工作明细</h2>
+        <div class="summary-content" id="report-work-details"></div>
+    </div>
+</div>
+
+<style type="text/css">
+    .summary-title {
+        color: #000;
+        font-weight: bold;
+        line-height: 35px;
+    }
+
+    .summary-time {
+        line-height: 35px;
+        color: #333;
+        font-size: 16px;
+    }
+
+    h2.summary-title {
+        margin-top: 20px;
+    }
+
+    .summary-content {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    .summary-footer {
+        font-weight: bold;
+        color: red;
+        background: #f2f2f2;
+    }
+
+    .summary-warning {
+        background-color: rgba(255, 184, 0, 0.3);
+    }
+
+    .text-align-right {
+        text-align: right;
+    }
+</style>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab'], function () {
+        var table = layui.table;
+        var crab = layui.crab;
+        var param = crab.getFormData();
+
+        $('#summary-title').html(param.beginDate + ' 至 ' + param.endDate + ' (第' + param.weekIndex + '周) 工作内容明细');
+        crab.get('/report/work/list', {
+            beginTime: param.beginDate + " 00:00:00",
+            endTime: param.endDate + " 23:59:59"
+        }, function (data) {
+            var html = '';
+            for (var i = 0; i < data.length; i++) {
+                html += '<h4 class="summary-title">' + data[i].userRealName + ':</h4>';
+                html += '<table class="layui-table" lay-size="sm">';
+                html += '<colgroup>';
+                html += '<col width="50">';
+                html += '<col width="140">';
+                html += '<col>';
+                html += '<col width="120">';
+                html += '<col width="120">';
+                html += '<col width="120">';
+                html += '<col width="80">';
+                html += '<col width="80">';
+                html += '</colgroup>';
+                html += '<thead>';
+                html += '<tr>';
+                html += '<th>序号</th>';
+                html += '<th>项目名称</th>';
+                html += '<th>任务名称</th>';
+                html += '<th>任务开始时间</th>';
+                html += '<th>任务结束时间</th>';
+                html += '<th>实际结束时间</th>';
+                html += '<th>工时</th>';
+                html += '<th>日累计</th>';
+                html += '</tr>';
+                html += '</thead>';
+                html += '<tbody>';
+                var index = 1, currentDay;
+                for (var j = 0; j < data[i].reportWorkDailyVoList.length; j++) {
+                    var workDaily = data[i].reportWorkDailyVoList[j];
+                    for (var k = 0; k < workDaily.reportWorkDetailsVoList.length; k++) {
+                        var workDetails = workDaily.reportWorkDetailsVoList[k];
+                        if (!workDetails.realEndTime || workDetails.endTime.substring(0, 10) != workDetails.day) {
+                            html += '<tr class="summary-warning">';
+                        } else {
+                            html += '<tr>';
+                        }
+                        html += '<td>' + (index++) + '</td>';
+                        html += '<td>' + workDetails.projectName + '</td>';
+                        html += '<td><span data-id="' + workDetails.taskId + '" class="link" href="#">' + workDetails.taskName + '</span></td>';
+                        html += '<td>' + workDetails.beginTime + '</td>';
+                        html += '<td>' + workDetails.endTime + '</td>';
+                        html += '<td>' + (workDetails.realEndTime ? workDetails.realEndTime : '-') + '</td>';
+                        html += '<td>' + workDetails.workHour + '</td>';
+                        if (currentDay != workDetails.day) {
+                            html += '<td rowspan="' + workDaily.reportWorkDetailsVoList.length + '">' + workDaily.dailyWorkHour + '</td>';
+                        }
+                        html += '</tr>';
+                        currentDay = workDetails.day;
+                    }
+                }
+                html += '<tr><td colspan="7" class="summary-footer text-align-right">' + data[i].userRealName + '&nbsp;：&nbsp;本周累计工时</td><td class="summary-footer">' + data[i].weekWorkHour + '</td></tr>';
+                html += '</tbody>';
+                html += '</table>';
+            }
+            $('#report-work-details').append(html);
+            initSummaryTime(data);
+        });
+
+        function initSummaryTime(data) {
+            data.sort(function (a, b) {
+                return b.weekWorkHour - a.weekWorkHour;
+            });
+
+            var html = '&emsp;&emsp;本周工作累计工时,按时长倒叙排列：';
+            for (var i = 0; i < data.length; i++) {
+                html += data[i].userRealName + "&nbsp;:&nbsp;" + data[i].weekWorkHour + 'h&emsp;';
+            }
+            $('.summary-time').html(html);
+        }
+
+        $(document).on('click', '.link', function () {
+            var taskId = $(this).data('id');
+
+            crab.get('/project/task/page', {limit: 1, page: 1, id: taskId}, function (data) {
+                data = data.records[0];
+                data.details = true;
+                crab.putFormData(data);
+                crab.popupCenter({
+                    title: '查看任务信息',
+                    path: '/components/project/task/project-task-form.html',
+                    area: '700px'
+                });
+            })
+        });
+    });
+</script>

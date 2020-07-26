@@ -22,13 +22,34 @@
     </select>
 
     <select id="pageTotal" resultType="com.sinodevice.pms.report.week.vo.ReportWeekVo">
-        SELECT * FROM report_week where DELETED = 0
-        <if test="reportWeek.beginDate != null">
-            AND R1.BEGIN_DATE <![CDATA[ >= ]]> CONCAT(#{reportWeek.beginDate},' 00:00:00')
-        </if>
-        <if test="reportWeek.endDate != null">
-            AND R1.END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
-        </if>
+        SELECT BEGIN_DATE,END_DATE,WEEK_INDEX
+        FROM report_week where DELETED = 0
+        <where>
+            <if test="reportWeek.beginDate != null">
+                AND BEGIN_DATE <![CDATA[ >= ]]> CONCAT(#{reportWeek.beginDate},' 00:00:00')
+            </if>
+            <if test="reportWeek.endDate != null">
+                AND END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
+            </if>
+        </where>
+        GROUP BY WEEK_INDEX
+        ORDER BY WEEK_INDEX DESC
+    </select>
+
+    <select id="weekList" resultType="com.sinodevice.pms.report.week.vo.ReportWeekVo">
+        SELECT * FROM (
+            SELECT BEGIN_DATE,END_DATE,WEEK_INDEX FROM report_week where DELETED = 0
+            UNION ALL
+            SELECT #{beginDate} AS BEGIN_DATE, #{endDate} END_DATE,#{weekIndex} AS WEEK_INDEX FROM DUAL
+        ) AS A
+        <where>
+            <if test="reportWeek.beginDate != null">
+                AND BEGIN_DATE <![CDATA[ >= ]]> CONCAT(#{reportWeek.beginDate},' 00:00:00')
+            </if>
+            <if test="reportWeek.endDate != null">
+                AND END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
+            </if>
+        </where>
         GROUP BY WEEK_INDEX
         ORDER BY WEEK_INDEX DESC
     </select>

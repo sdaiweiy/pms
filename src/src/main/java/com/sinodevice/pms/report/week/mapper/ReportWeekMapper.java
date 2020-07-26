@@ -23,4 +23,5 @@ public interface ReportWeekMapper extends BaseMapper<ReportWeek> {
 
     List<ReportWeek> pageTotal(IPage<ReportWeek> page, @Param(value = "reportWeek") ReportWeek reportWeek);
 
+    List<ReportWeek> weekList(IPage<ReportWeek> page, @Param(value = "reportWeek") ReportWeek reportWeek, @Param("beginDate") String beginDate, @Param("endDate") String endDate, @Param("weekIndex") int weekIndex);
 }

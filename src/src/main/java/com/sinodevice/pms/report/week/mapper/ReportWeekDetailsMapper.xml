@@ -10,4 +10,16 @@
         ORDER BY S1.REAL_NAME ASC
     </select>
 
+
+    <select id="listWorkDetails" resultType="com.sinodevice.pms.report.work.vo.ReportWorkDetailsVo">
+        SELECT P1.TASK_ID,P3.NAME AS PROJECT_NAME,P2.NAME AS TASK_NAME, S1.REAL_NAME AS USER_REAL_NAME,
+        P1.BEGIN_TIME,P1.END_TIME,P1.REAL_END_TIME,IFNULL(P1.WORK_HOUR,0) AS WORK_HOUR,DATE_FORMAT(P1.BEGIN_TIME,'%Y-%m-%d') AS DAY
+        FROM project_task_process_details P1 JOIN project_task P2 ON P1.TASK_ID = P2.ID
+        JOIN PROJECT_INFO P3 ON P2.PROJECT_ID = P3.ID
+        JOIN SYS_USER S1 ON P1.USER_ID = S1.ID
+        AND P1.BEGIN_TIME <![CDATA[ >= ]]> #{beginTime}
+        AND (P1.END_TIME <![CDATA[ <= ]]> #{endTime} OR P1.END_TIME IS NULL)
+        ORDER BY USER_ID,BEGIN_TIME ASC
+    </select>
+
 </mapper>

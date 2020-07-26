@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 
@@ -53,6 +54,24 @@ public class ReportWeekServiceImpl extends ServiceImpl<ReportWeekMapper, ReportW
     @Override
     public IPage<ReportWeek> pageTotal(IPage<ReportWeek> page, ReportWeek reportWeek) {
         return page.setRecords(this.baseMapper.pageTotal(page, reportWeek));
+    }
+
+    @Override
+    public IPage<ReportWeek> weekList(IPage<ReportWeek> page, ReportWeek reportWeek) {
+        LocalDate today = LocalDate.now();
+        Param startWeekParam = paramService.getByCode("start.week");
+
+        int realWeekOfYear = today.get(WeekFields.of(DayOfWeek.MONDAY, 1).weekOfYear()) - Integer.parseInt(startWeekParam.getContent());
+
+        if (this.count(Wrappers.<ReportWeek>lambdaQuery().eq(ReportWeek::getWeekIndex, realWeekOfYear)) > 0) {
+            return page.setRecords(this.baseMapper.pageTotal(page, reportWeek));
+        } else {
+            return page.setRecords(this.baseMapper.weekList(page, reportWeek,
+                    today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                    today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                    realWeekOfYear
+            ));
+        }
     }
 
     @Override

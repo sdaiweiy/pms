@@ -1,0 +1,88 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">工作明细</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>日常汇报</cite></a>
+          <a><cite>工作明细</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="searchForm" onsubmit="return false;" autocomplete="off">
+                开始时间：<input name="beginDate" id="beginDate" class="layui-input search-input" type="text"
+                            placeholder="输入开始时间"/>&emsp;
+                结束时间：<input name="endDate" id="endDate" class="layui-input search-input" type="text"
+                            placeholder="输入结束时间"/>&emsp;
+                <button id="report-week-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索
+                </button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="report-week-toolbar">
+            <div class="layui-btn-container"></div>
+        </script>
+        <table class="layui-table" id="report-week-table" lay-filter="report-week-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="report-week-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="view">查看</a>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'laydate', 'index'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var laydate = layui.laydate;
+        var index = layui.index;
+
+        laydate.render({elem: '#beginDate'});
+        laydate.render({elem: '#endDate'});
+
+        // 渲染表格
+        var weekTable = table.render({
+            elem: '#report-week-table',
+            toolbar: '#report-week-toolbar',
+            url: config.base_server + '/report/week/weekList',
+            parseData: config.parseData,
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {
+                    field: 'weekIndex', title: '周', width: 80, templet: function (d) {
+                        return '第' + d.weekIndex + '周';
+                    }
+                },
+                {field: 'beginDate', title: '开始时间', width: 110},
+                {field: 'endDate', title: '结束时间', width: 110},
+                {fixed: 'right', align: 'center', toolbar: '#report-week-table-bar', title: '操作', width: 120}
+            ]]
+        });
+
+        // 表格操作列事件
+        table.on('tool(report-week-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'view') {
+                crab.putFormData(data);
+                index.openNewTab({
+                    url: '/components/report/work/work-details.html',
+                    title: '工作明细详细查看',
+                    menuId: 'work-details'
+                });
+            }
+        });
+
+        // 搜索按钮点击事件
+        $('#report-week-btn-search').click(function () {
+            weekTable.reload({where: crab.getSearchForm()});
+        });
+
+    });
+</script>

@@ -19,6 +19,8 @@ public interface IReportWeekService extends IService<ReportWeek> {
 
     IPage<ReportWeek> pageTotal(IPage<ReportWeek> page, ReportWeek reportWeek);
 
+    IPage<ReportWeek> weekList(IPage<ReportWeek> page, ReportWeek reportWeek);
+
     Boolean saveDto(ReportWeekDto reportWeekDto);
 
 }

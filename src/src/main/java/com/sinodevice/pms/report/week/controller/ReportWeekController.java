@@ -39,6 +39,11 @@ public class ReportWeekController extends BaseController<IReportWeekService, Rep
         return success(baseService.pageTotal(getPage(), reportWeek));
     }
 
+    @GetMapping("/weekList")
+    public R<IPage<ReportWeek>> weekList(ReportWeek reportWeek) {
+        return success(baseService.weekList(getPage(), reportWeek));
+    }
+
     @PostMapping("/dto")
     public R<Boolean> add(@RequestBody ReportWeekDto reportWeekDto) {
         return R.ok(baseService.saveDto(reportWeekDto));

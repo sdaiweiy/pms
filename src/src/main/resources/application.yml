@@ -1,6 +1,6 @@
 # Spring Boot
 server:
-  port: 9081
+  port: 8087
 spring:
   mvc:
     favicon:

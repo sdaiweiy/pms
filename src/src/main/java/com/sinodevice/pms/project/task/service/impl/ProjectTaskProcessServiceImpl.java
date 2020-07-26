@@ -56,6 +56,7 @@ public class ProjectTaskProcessServiceImpl extends ServiceImpl<ProjectTaskProces
         //保存处理过程
         ProjectTaskProcessDetails projectTaskProcessDetails = new ProjectTaskProcessDetails();
         projectTaskProcessDetails.setBeginTime(time);
+        projectTaskProcessDetails.setRealBeginTime(LocalDateTime.now());
         projectTaskProcessDetails.setTaskId(taskId);
         projectTaskProcessDetails.setUserId(account.getId());
         projectTaskProcessDetailsService.save(projectTaskProcessDetails);
@@ -104,6 +105,7 @@ public class ProjectTaskProcessServiceImpl extends ServiceImpl<ProjectTaskProces
                 .isNotNull(ProjectTaskProcessDetails::getBeginTime)
                 .isNull(ProjectTaskProcessDetails::getEndTime));
         projectTaskProcessDetails.setEndTime(endTime);
+        projectTaskProcessDetails.setRealEndTime(LocalDateTime.now());
 
         Duration duration = Duration.between(projectTaskProcessDetails.getBeginTime(), projectTaskProcessDetails.getEndTime());
         projectTaskProcessDetails.setWorkHour(BigDecimal.valueOf(duration.toMinutes() / 60.0).setScale(1, BigDecimal.ROUND_UP));
