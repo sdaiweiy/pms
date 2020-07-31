@@ -1,0 +1,151 @@
+<!-- 参数表单弹窗 -->
+<form id="week-summary-form" lay-filter="week-summary-form" class="layui-form model-form" autocomplete="off">
+    <input name="id" type="hidden"/>
+    <div class="form-header" style="margin-top: 10px">
+        <h1 id="week-summary-title" name="title">工作周报</h1>
+    </div>
+    <div class="layui-row" style="margin-top: 10px">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">开始日期</label>
+                <div class="layui-input-block">
+                    <input name="beginDate" id="weekSummaryFormBeginDate" placeholder="开始日期" type="text"
+                           class="layui-input" minlength="2"
+                           maxlength="20" lay-verify="required" required/>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label">结束日期</label>
+                <div class="layui-input-block">
+                    <input name="endDate" id="weekSummaryFormEndDate" placeholder="结束日期" type="text" class="layui-input"
+                           minlength="2"
+                           maxlength="20" lay-verify="required" required/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="week-summary-form-editor">
+        <span style="margin-bottom: 10px;display: inline-block">本周工作总结：</span>
+        <script type="text/plain" id="week-summary-content" style="width:100%;height:100px;"></script>
+    </div>
+    <div class="week-summary-form-editor">
+        <span style="margin-bottom: 10px;display: inline-block">下周工作计划：</span>
+        <script type="text/plain" id="week-summary-plan" style="width:100%;height:100px;"></script>
+    </div>
+
+
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" id="week-summary-close" type="button">
+            取消
+        </button>
+        <button class="layui-btn" lay-filter="week-summary-form-submit" id="week-summary-save" lay-submit>保存
+        </button>
+    </div>
+</form>
+
+<style type="text/css">
+    #week-summary-form .layui-form-label {
+        width: 100px;
+    }
+
+    #week-summary-form .layui-input-block {
+        margin-left: 130px;
+    }
+
+    #week-summary-form {
+        padding-top: 0;
+    }
+
+    .week-summary-form-editor {
+        margin-left: 50px;
+        margin-bottom: 20px;
+    }
+
+    .form-header h1 {
+        color: #333;
+        text-align: center;
+        line-height: 40px;
+        font-weight: bold;
+    }
+</style>
+<script>
+    layui.use(['layer', 'crab', 'form', 'upload', 'laydate'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var edit = false;
+        var laydate = layui.laydate;
+
+        var toolbars = [
+            ['fullscreen', 'source', 'undo', 'redo', 'bold']
+        ]
+
+        //实例化编辑器
+        var contentUm = UM.getEditor('week-summary-content');
+        var planUm = UM.getEditor('week-summary-plan');
+
+
+        // 编辑的参数信息
+        var weekSummary = crab.getFormData(), flag = true;
+        if (weekSummary.id) {
+            if (weekSummary.view) {
+                flag = false;
+                $('#week-summary-form .model-form-footer').hide();
+                $('input').attr('readonly', true);
+                UM.getEditor('week-summary-content').setDisabled('fullscreen');
+                UM.getEditor('week-summary-plan').setDisabled('fullscreen');
+            } else {
+                edit = true;
+            }
+            // 回显参数数据
+            $("#week-summary-title").html(weekSummary.title);
+            form.val('week-summary-form', weekSummary);
+            contentUm.setContent(weekSummary.content, true);
+            planUm.setContent(weekSummary.plan, true);
+        }
+
+        if (flag) {
+            laydate.render({
+                elem: '#weekSummaryFormBeginDate',
+                format: 'yyyy-MM-dd'
+            });
+            laydate.render({
+                elem: '#weekSummaryFormEndDate',
+                format: 'yyyy-MM-dd'
+            });
+        }
+
+        form.render();
+
+        // 表单提交事件
+        form.on('submit(week-summary-form-submit)', function (data) {
+            if (!(contentUm.getContent() && contentUm.getContent().trim() != "")) {
+                layer.msg("本周工作总结不能为空");
+                return false;
+            }
+            if (!(planUm.getContent() && planUm.getContent().trim() != "")) {
+                layer.msg("下周工作计划不能为空");
+                return false;
+            }
+            data.field.content = contentUm.getContent();
+            data.field.plan = planUm.getContent();
+            data.field.title = data.field.beginDate + " ~ " + data.field.endDate + " 工作周报";
+            crab.request('/report/week/summary', data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                closeUm();
+                crab.finishPopupCenter();
+            }, edit ? 'PUT' : 'POST');
+            return false;
+        });
+
+        $("#week-summary-close").click(closeUm);
+
+        function closeUm() {
+            UM.getEditor('week-summary-content').destroy();
+            UM.getEditor('week-summary-plan').destroy();
+        };
+
+    });
+</script>
