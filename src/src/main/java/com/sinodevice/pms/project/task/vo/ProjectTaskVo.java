@@ -5,6 +5,7 @@ import com.sinodevice.pms.project.task.entity.ProjectTask;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -16,7 +17,7 @@ public class ProjectTaskVo extends ProjectTask {
 
     private String createByName;
 
-    private int workHourSum;
+    private BigDecimal workHourSum;
 
     private String taskUsers;
 

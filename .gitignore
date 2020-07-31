@@ -1,0 +1,5 @@
+﻿**/*.iml
+**/.idea
+**/target
+**/*.log
+**/application-mysql.yml
