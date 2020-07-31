@@ -32,17 +32,18 @@ layui.define(['config', 'layer'], function (exports) {
             $('.layui-layout-admin .layui-side .layui-nav .layui-nav-item').removeClass('layui-this');
             if (url && url != '') {
                 $('.layui-layout-admin .layui-side .layui-nav .layui-nav-item').removeClass('layui-nav-itemed');
-                var thirdFlag = false,$a = $('.layui-layout-admin .layui-side .layui-nav>.layui-nav-item>.layui-nav-child>dd>a[href="#' + url + '"]');
-                if($a.length === 0) {
+                var thirdFlag = false,
+                    $a = $('.layui-layout-admin .layui-side .layui-nav>.layui-nav-item>.layui-nav-child>dd>a[href="#' + url + '"]');
+                if ($a.length === 0) {
                     thirdFlag = true;
                     $a = $('.layui-layout-admin .layui-side .layui-nav>.layui-nav-item>.layui-nav-child>.layui-nav-item-second>.layui-nav-child>dd>a[href="#' + url + '"]');
                 }
                 $a.parent('dd').addClass('layui-this');
                 $a.parent('li').addClass('layui-this');
-                if(thirdFlag){
+                if (thirdFlag) {
                     $a.parent('dd').parent('.layui-nav-child').parent('.layui-nav-item-second').addClass('layui-nav-itemed');
                     $a.parent('dd').parent('.layui-nav-child').parent('.layui-nav-item-second').parent('.layui-nav-child').parent('.layui-nav-item').addClass('layui-nav-itemed');
-                }else{
+                } else {
                     $a.parent('dd').parent('.layui-nav-child').parent('.layui-nav-item').addClass('layui-nav-itemed');
                 }
             }
@@ -98,25 +99,27 @@ layui.define(['config', 'layer'], function (exports) {
                 $(layero).children('.layui-layer-content').load(param.path);
             };
             param.cancel = function () {
-                // to do nothing
+                if (param.cancelCallback) {
+                    param.cancelCallback();
+                }
             };
             return layer.open(param);
         },
         getMenus: function (uri, data, callback) {
             this.request(uri, data, function (data) {
-                if(data.length > 0){
-                    var menus = new Array(),fucs = new Array(),map={},resourceMap={};
-                    for(var i=0;i<data.length;i++){
+                if (data.length > 0) {
+                    var menus = new Array(), fucs = new Array(), map = {}, resourceMap = {};
+                    for (var i = 0; i < data.length; i++) {
                         var d = data[i];
-                        ''+d.type === '0'?menus.push(d):fucs.push(d);
-                        map[''+d.id] = d;
+                        '' + d.type === '0' ? menus.push(d) : fucs.push(d);
+                        map['' + d.id] = d;
                     }
-                    for(var j=0;j<fucs.length;j++){
-                        if(resourceMap[map[''+fucs[j].pid].path]){
-                            resourceMap[map[''+fucs[j].pid].path].push(fucs[j]);
-                        }else{
-                            resourceMap[map[''+fucs[j].pid].path]=new Array();
-                            resourceMap[map[''+fucs[j].pid].path].push(fucs[j]);
+                    for (var j = 0; j < fucs.length; j++) {
+                        if (resourceMap[map['' + fucs[j].pid].path]) {
+                            resourceMap[map['' + fucs[j].pid].path].push(fucs[j]);
+                        } else {
+                            resourceMap[map['' + fucs[j].pid].path] = new Array();
+                            resourceMap[map['' + fucs[j].pid].path].push(fucs[j]);
                         }
                     }
                     crab.putUserResource(resourceMap);
@@ -161,7 +164,7 @@ layui.define(['config', 'layer'], function (exports) {
 
                         callback(authMenus);
                     }
-                }else{
+                } else {
                     callback();
                 }
             });
@@ -220,7 +223,7 @@ layui.define(['config', 'layer'], function (exports) {
             layer.load(2);
             $.ajax({
                 url: config.base_server + url,
-                async:async !== undefined?async:true,
+                async: async !== undefined ? async : true,
                 data: data,
                 type: method,
                 contentType: contentType,
@@ -235,7 +238,7 @@ layui.define(['config', 'layer'], function (exports) {
                         callback(data.data);
                     } else {
                         layer.msg(data.msg, {icon: 2});
-                        if(errCallback) errCallback();
+                        if (errCallback) errCallback();
                     }
                 },
                 error: function (xhr) {
@@ -389,7 +392,7 @@ layui.define(['config', 'layer'], function (exports) {
             crab.flexible(config.side);
             // 加载设置的主题
             var theme = layui.data('crab').theme;
-            if(theme) layui.link('/assets/css/' + (theme ? theme : config.theme) + '.css');
+            if (theme) layui.link('/assets/css/' + (theme ? theme : config.theme) + '.css');
             // 加载设置的多标签
             var pageTabs = layui.data('crab').pageTabs;
             if (pageTabs || false == pageTabs) {
@@ -446,7 +449,7 @@ layui.define(['config', 'layer'], function (exports) {
             audio[0].play();
         },
         // array生成tree (nodes:array,treeRootPid:顶级的pid)
-        createTreeData: function(nodes, treeRootPid) {
+        createTreeData: function (nodes, treeRootPid) {
             var groups = {};
             // 按父节点将节点分组
             for (var i in nodes) {
@@ -471,6 +474,7 @@ layui.define(['config', 'layer'], function (exports) {
                     }
                 }
             }
+
             traverseTreeNodeGroup(rootNodes);
             return rootNodes;
         }
