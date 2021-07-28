@@ -47,9 +47,9 @@ public class ProjectInfoServiceImpl extends ServiceImpl<ProjectInfoMapper, Proje
     }
 
     @Override
-    public List<ProjectInfo> listByUserId() {
+    public List<ProjectInfo> listByUserId(Long type) {
         Account account = LoginHelper.getAccount();
-        return this.baseMapper.listByUserId(account.getId());
+        return this.baseMapper.listByUserId(account.getId(),type);
     }
 
     @Override
@@ -83,6 +83,14 @@ public class ProjectInfoServiceImpl extends ServiceImpl<ProjectInfoMapper, Proje
             ProjectInfoUser projectInfoUser = new ProjectInfoUser();
             projectInfoUser.setProjectId(projectInfoDto.getId());
             projectInfoUser.setUserId(Long.valueOf(userId));
+            projectInfoUser.setType(0l);
+            projectInfoUserList.add(projectInfoUser);
+        }
+        for (String userId : projectInfoDto.getDeveloperList().split(",")) {
+            ProjectInfoUser projectInfoUser = new ProjectInfoUser();
+            projectInfoUser.setProjectId(projectInfoDto.getId());
+            projectInfoUser.setUserId(Long.valueOf(userId));
+            projectInfoUser.setType(1l);
             projectInfoUserList.add(projectInfoUser);
         }
         projectInfoUserService.saveBatch(projectInfoUserList);

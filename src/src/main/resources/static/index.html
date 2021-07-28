@@ -9,11 +9,6 @@
     <link rel="stylesheet" href="/assets/libs/layui/css/layui.css"/>
     <link rel="stylesheet" href="/assets/css/admin.css"/>
     <link rel="stylesheet" href="/module/formSelects/formSelects-v4.css"/>
-    <link href="/assets/libs/umeditor1.2.3/themes/default/css/umeditor.css?ver=20191223" type="text/css" rel="stylesheet">
-    <script type="text/javascript" src="/assets/libs/umeditor1.2.3/third-party/jquery.min.js?ver=20191223"></script>
-    <script type="text/javascript" charset="utf-8" src="/assets/libs/umeditor1.2.3/umeditor.config.js?ver=20191223"></script>
-    <script type="text/javascript" charset="utf-8" src="/assets/libs/umeditor1.2.3/umeditor.min.js?ver=20191223"></script>
-    <script type="text/javascript" src="/assets/libs/umeditor1.2.3/lang/zh-cn/zh-cn.js?ver=20191223"></script>
 </head>
 <body class="layui-layout-body">
 <div class="layui-layout layui-layout-admin">
@@ -68,7 +63,8 @@
         formSelects: 'formSelects/formSelects-v4',
         inputSelect: 'inputSelect/inputSelect-v1.0',
         treeTable: 'treeTable/treeTable',
-        iconPicker: 'iconPicker/iconPicker'
+        iconPicker: 'iconPicker/iconPicker',
+        tinymce: 'tinymce/tinymce'
     }).use(['index', 'crab', 'element'], function () {
         var $ = layui.jquery;
         var element = layui.element;
@@ -96,6 +92,16 @@
             element.render('nav');
             index.bindEvent();
         });
+
+        $(document).on('click', '.layui-side a', function () {
+            var href = $(this).attr('href');
+            if (href.indexOf('#') > -1) {
+                if (window['tinyMCE'] && tinyMCE && tinyMCE.editors && tinyMCE.editors[0]) {
+                    tinyMCE.editors[0].destroy();
+                }
+            }
+        });
+
     });
 </script>
 </body>

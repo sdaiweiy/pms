@@ -32,6 +32,14 @@
         </div>
     </div>
     <div class="layui-form-item">
+        <label class="layui-form-label">项目开发人</label>
+        <div class="layui-input-block">
+            <select name="developerList" xm-select="developerList">
+                <option value="">请选择项目开发人</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
         <label class="layui-form-label required-tip">项目状态</label>
         <div class="layui-input-block">
             <select name="status" lay-verify="required" required>
@@ -98,8 +106,10 @@
         // 上级菜单
         crab.get('/sys/user/list', {}, function (data) {
             formSelects.data('userList', 'local', {arr: data, keyVal: 'id', keyName: 'realName'});
+            formSelects.data('developerList', 'local', {arr: data, keyVal: 'id', keyName: 'realName'});
             if (projectInfo) {
-                formSelects.value('userList', projectInfo.userList ? projectInfo.userList.split(",") : [])
+                formSelects.value('userList', projectInfo.userList ? projectInfo.userList.split(",") : []);
+                formSelects.value('developerList', projectInfo.developerList ? projectInfo.developerList.split(",") : []);
             }
         });
 

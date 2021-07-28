@@ -24,7 +24,7 @@ public interface ProjectInfoMapper extends BaseMapper<ProjectInfo> {
 
     List<ProjectInfoVo> page(IPage<ProjectInfoVo> page, @Param(value = "projectInfo") ProjectInfo projectInfo);
 
-    List<ProjectInfo> listByUserId(@Param(value = "userId") Long userId);
+    List<ProjectInfo> listByUserId(@Param(value = "userId") Long userId, @Param(value = "type") Long type);
 
     List<ProjectStatusVo> listProjectStatus(@Param(value = "beginDate") LocalDate beginDate, @Param(value = "endDate") LocalDate endDate);
 

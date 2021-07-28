@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.project.require.problem.mapper.ProjectRequireProblemMapper">
+
+    <select id="page" resultType="com.sinodevice.pms.project.require.problem.vo.ProjectRequireProblemVo">
+        SELECT P1.*,P2.TITLE AS DOCUMENT_NAME,P3.NAME AS PROJECT_NAME,S1.REAL_NAME AS CREATE_BY_NAME
+        FROM PROJECT_REQUIRE_PROBLEM P1 JOIN PROJECT_REQUIRE_DOCUMENT P2 ON P1.DOCUMENT_ID = P2.ID
+        JOIN PROJECT_INFO P3 ON P2.PROJECT_ID = P3.ID
+        JOIN SYS_USER S1 ON P1.CREATE_BY = S1.ID
+        <where>
+            <if test="projectRequireProblem.status != null">
+                AND P1.STATUS = #{projectRequireProblem.status}
+            </if>
+            <if test="projectRequireProblem.documentId != null">
+                AND P1.DOCUMENT_ID = #{projectRequireProblem.documentId}
+            </if>
+            <if test="projectRequireProblem.projectId != null">
+                AND P2.PROJECT_ID = #{projectRequireProblem.projectId}
+            </if>
+            <if test="projectRequireProblem.beginTime != null">
+                AND P1.CREATE_TIME <![CDATA[ >= ]]> #{projectRequireProblem.beginTime}
+            </if>
+            <if test="projectRequireProblem.endTime != null">
+                AND P1.CREATE_TIME <![CDATA[ <= ]]> #{projectRequireProblem.endTime}
+            </if>
+            <if test="projectRequireProblem.content != null and projectRequireProblem.content != ''">
+                <bind name="content" value="'%' + projectRequireProblem.content + '%'"/>
+                AND (P1.CONTENT LIKE #{content} OR P1.TITLE LIKE #{content})
+            </if>
+            <if test="projectRequireProblem.projectList != null">
+                AND P2.PROJECT_ID IN
+                <foreach collection="projectRequireProblem.projectList" item="projectId" index="index" open="("
+                         close=")" separator=",">
+                    #{projectId}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY FIELD(P1.STATUS,0,2,1,3),CREATE_TIME DESC
+    </select>
+
+</mapper>

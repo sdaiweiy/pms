@@ -1,0 +1,158 @@
+<!-- 参数表单弹窗 -->
+<form id="project-require-problem-form" lay-filter="project-require-problem-form" class="layui-form model-form"
+      autocomplete="off">
+    <input name="id" type="hidden"/>
+    <div class="layui-row">
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label required-tip">所属项目</label>
+                <div class="layui-input-block">
+                    <select name="projectId" id="edit-project-select" lay-filter="edit-project-select"></select>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-form-item">
+                <label class="layui-form-label required-tip">需求类目</label>
+                <div class="layui-input-block">
+                    <select name="documentId" xm-select="edit-document-select" xm-select-radio lay-verify="required">
+                        <option value="">请选择</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">标&emsp;&emsp;题</label>
+        <div class="layui-input-block">
+            <input name="title" placeholder="请输入问题标题" type="text" class="layui-input" minlength="6" maxlength="100"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">问题描述</label>
+        <div class="layui-input-block">
+            <textarea name="content" id="content"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" id="project-require-problem-form-close" type="button">取消
+        </button>
+        <button class="layui-btn" lay-filter="project-require-problem-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+
+<script>
+    layui.use(['layer', 'crab', 'form', 'upload', 'formSelects', 'tinymce'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var edit = false;
+        var formSelects = layui.formSelects;
+        var tinymce = layui.tinymce;
+
+        initProjectInfo();
+
+        form.on('select(edit-project-select)', function (data) {
+            if (data.value) {
+                initDocumentSelect(data.value);
+            } else {
+                formSelects.data('edit-document-select', 'local', {arr: []});
+                form.render();
+            }
+        });
+
+        var editorOptions = {
+            menubar: false,
+            toolbar: 'undo redo | forecolor backcolor | styleselect fontselect fontsizeselect | bullist numlist table image link | removeformat',
+            width: 880,
+            height: 350,
+            content_style: "p {margin: 0px; border:0px ; padding: 0px}",
+            statusbar: false,
+            file_picker_types: 'file image media',
+            images_upload_url: '/upload/local',
+            automatic_uploads: false,
+            file_picker_callback: function (callback, value, meta) {
+                var input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.onchange = function () {
+                    var file = this.files[0];
+                    var form = new FormData();
+                    form.append("file", file);
+                    $.ajax({
+                        url: "/upload/local",
+                        type: "post",
+                        data: form,
+                        processData: false,
+                        contentType: false,
+                        success: function (res) {
+                            callback(res.data.filePath, {text: res.data.fileName});
+                        },
+                        error: function (e) {
+                            alert("图片上传失败");
+                        }
+                    });
+                };
+                input.click();
+            }
+        };
+
+        tinymce.render($.extend({}, {elem: "#content"}, editorOptions));
+        form.render();
+
+        // 表单提交事件
+        form.on('submit(project-require-problem-form-submit)', function (data) {
+            var content = tinyMCE.editors[0].getContent();
+            if (content.trim() == '') {
+                layer.msg("问题描述不能为空");
+                return false;
+            }
+
+            data.field.content = content;
+            data.field.status = 0;
+            crab.request('/project/require/problem', data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                destroyEditor();
+                crab.finishPopupCenter();
+            }, edit ? 'PUT' : 'POST');
+            return false;
+        });
+
+        $("#project-require-problem-form-close").click(function () {
+            destroyEditor();
+            layer.closeAll();
+        });
+
+        function destroyEditor() {
+            tinyMCE.editors[0].destroy();
+        }
+
+        function initDocumentSelect(projectId) {
+            // 上级菜单
+            crab.get('/project/require/document/list', {projectId: projectId}, function (data) {
+                var l = data.length;
+                if (l >= 0) {
+                    var moduleData = [];
+                    for (var i = 0; i < data.length; i++) {
+                        moduleData.push({id: data[i].id, pid: data[i].pid, name: data[i].title, value: data[i].id});
+                    }
+                    formSelects.data('edit-document-select', 'local', {arr: crab.createTreeData(moduleData, '0')});
+                }
+            });
+        }
+
+        function initProjectInfo() {
+            crab.get("/project/info/listUserId", {}, function (data) {
+                var html = '<option value="">请选择</option>';
+                for (var i = 0; i < data.length; i++) {
+                    html += '<option value="' + data[i].id + ' ">' + data[i].name + '</option>';
+                }
+                $('#edit-project-select').append(html);
+                form.render();
+            }, false, false);
+        }
+    });
+</script>

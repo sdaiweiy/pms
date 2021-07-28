@@ -39,7 +39,7 @@
         var treeTable = layui.treeTable, tableId = '#project-module-table';
 
         // 获取所有项目信息
-        crab.get("/project/info/listUserId", {}, function (data) {
+        crab.get("/project/info/listUserId", {type: 0}, function (data) {
             var html = '';
             for (var i = 0; i < data.length; i++) {
                 html += '<option ' + (i == 0 ? 'selected' : '') + ' value="' + data[i].id + ' ">' + data[i].name + '</option>';

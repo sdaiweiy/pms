@@ -38,8 +38,8 @@ public class ProjectInfoController extends BaseController<IProjectInfoService, P
     }
 
     @GetMapping("/listUserId")
-    public R<List<ProjectInfo>> listUserId() {
-        return success(baseService.listByUserId());
+    public R<List<ProjectInfo>> listUserId(Long type) {
+        return success(baseService.listByUserId(type));
     }
 
     @GetMapping("/listProjectStatus")

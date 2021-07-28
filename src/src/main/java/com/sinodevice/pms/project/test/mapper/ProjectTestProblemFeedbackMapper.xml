@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.project.test.mapper.ProjectTestProblemFeedbackMapper">
+
+    <select id="list" resultType="com.sinodevice.pms.project.require.problem.vo.ProjectRequireProblemFeedbackVo">
+        SELECT P1.*,P3.PROJECT_ID,P4.TYPE AS USER_TYPE,S1.REAL_NAME AS CREATE_BY_NAME
+        FROM PROJECT_TEST_PROBLEM_FEEDBACK P1
+        JOIN SYS_USER S1 ON S1.ID = P1.CREATE_BY
+        JOIN PROJECT_TEST_PROBLEM P2 ON P1.PROBLEM_ID = P2.ID
+        JOIN PROJECT_REQUIRE_DOCUMENT P3 ON P2.DOCUMENT_ID = P3.ID
+        JOIN PROJECT_INFO_USER P4 ON P4.USER_ID = P1.CREATE_BY AND P4.PROJECT_ID = P3.PROJECT_ID
+        WHERE P1.PROBLEM_ID = #{problemId}
+        ORDER BY P1.CREATE_TIME DESC
+    </select>
+
+</mapper>

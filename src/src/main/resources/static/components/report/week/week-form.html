@@ -18,9 +18,10 @@
                   required></textarea>
     </div>
 
-    <label class="layui-form-label">下周计划:</label>
+    <label class="layui-form-label required-tip">下周计划:</label>
     <div style="margin-left:30px;width:750px;">
-        <textarea name="plan" id="plan" placeholder="请填写下周计划" class="layui-textarea"></textarea>
+        <textarea name="plan" id="plan" placeholder="请填写下周计划" class="layui-textarea" lay-verify="required"
+                  required></textarea>
     </div>
 
     <br/>
@@ -153,6 +154,10 @@
         form.on('submit(report-week-form-submit)', function (data) {
             if (data.field.remark.length < 20) {
                 layer.msg('请认真填写本周总结,长度需大于20!', {icon: 2});
+                return false;
+            }
+            if (data.field.plan.length < 20) {
+                layer.msg('请认真填写下周计划,长度需大于20!', {icon: 2});
                 return false;
             }
             if (weekDetails.length == 0) {

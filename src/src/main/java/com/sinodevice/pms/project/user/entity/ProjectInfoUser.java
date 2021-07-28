@@ -34,4 +34,8 @@ public class ProjectInfoUser extends SuperEntity {
     @TableField("USER_ID")
     private Long userId;
 
+    @ApiModelProperty(value = "人员类型 0:干系人 1:开发人")
+    @TableField("TYPE")
+    private Long type;
+
 }

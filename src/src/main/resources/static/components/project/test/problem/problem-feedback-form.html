@@ -1,0 +1,233 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">测试反馈</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>测试反馈</cite></a>
+          <a><cite>运行维护</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body" id="project-wrapper">
+        <form id="project-document-form" lay-filter="project-document-form" autocomplete="off" class="layui-form">
+            <input name="id" type="hidden"/>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">问题标题：</label>
+                <div class="layui-input-block layui-input-text" id="title"></div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">问题类型：</label>
+                <div class="layui-input-block layui-input-text" id="type"></div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属项目：</label>
+                <div class="layui-input-block layui-input-text" id="projectName"></div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">需求模块：</label>
+                <div class="layui-input-block layui-input-text" id="documentName"></div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">状&emsp;&emsp;态：</label>
+                <div class="layui-input-block" id="status" style="padding-top: 2px;"></div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">发&nbsp;&nbsp;起&nbsp;&nbsp;人：</label>
+                <div class="layui-input-block layui-input-text" id="createByName">戴伟</div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">问题描述：</label>
+                <div class="layui-input-block" style="color: #333;padding-top:6px;" id="content"></div>
+            </div>
+            <div class="layui-form-item feedback">
+                <label class="layui-form-label">回&emsp;&emsp;复：</label>
+                <div class="layui-input-block">
+                    <textarea name="feedback" id="feedback"></textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item model-form-footer feedback">
+                <button class="layui-btn layui-btn-primary" id="project-document-form-back" type="button">返回</button>
+                <button class="layui-btn" id="project-document-form-submit" type="button">提交</button>
+            </div>
+        </form>
+
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend style="margin-left:calc(50% - 60px);font-weight: bold;">需求沟通过程</legend>
+        </fieldset>
+
+    </div>
+</div>
+
+<style type="text/css">
+    .layui-form {
+        padding-top: 10px;
+    }
+
+    .layui-form-item {
+        margin-bottom: 5px;
+    }
+
+    .layui-input-text {
+        text-align: left;
+        line-height: 38px;
+        color: #333;
+    }
+
+    .problem {
+        border-left-color: #FF5722;
+    }
+
+    .problem .title,
+    .answer .title {
+        display: inline-block;
+        color: #333;
+    }
+
+    .problem .user,
+    .answer .user {
+        display: inline-block;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .problem .time,
+    .answer .time {
+        display: inline-block;
+        float: right;
+        color: #333;
+        font-weight: bold;
+    }
+
+    #project-wrapper a,
+    #project-wrapper a:hover {
+        text-decoration: underline;
+        color: rgb(0, 0, 204);
+    }
+</style>
+
+<script>
+    layui.use(['layer', 'crab', 'form', 'tinymce'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var data = crab.getFormData();
+        var index = layui.index;
+
+        var tinymce = layui.tinymce;
+
+        var editorOptions = {
+            menubar: false,
+            toolbar: 'undo redo | forecolor backcolor | styleselect fontselect fontsizeselect | bullist numlist table image link | removeformat',
+            width: '100%',
+            height: 200,
+            content_style: "p {margin: 0px; border:0px ; padding: 0px}",
+            statusbar: false,
+            file_picker_types: 'file image media',
+            images_upload_url: '/upload/local',
+            automatic_uploads: false,
+            file_picker_callback: function (callback, value, meta) {
+                var input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.onchange = function () {
+                    var file = this.files[0];
+                    var form = new FormData();
+                    form.append("file", file);
+                    $.ajax({
+                        url: "/upload/local",
+                        type: "post",
+                        data: form,
+                        processData: false,
+                        contentType: false,
+                        success: function (res) {
+                            callback(res.data.filePath, {text: res.data.fileName});
+                        },
+                        error: function (e) {
+                            alert("图片上传失败");
+                        }
+                    });
+                };
+                input.click();
+            }
+        };
+
+        if (data.status == 3) {
+            $('.feedback').remove();
+        } else {
+            tinymce.render($.extend({}, {elem: "#feedback"}, editorOptions));
+        }
+
+        function destroyEditor() {
+            tinyMCE.editors[0].destroy();
+        }
+
+        initValue();
+        initProblemList();
+
+        $('#project-document-form-back').click(function () {
+            destroyEditor();
+            index.openNewTab({
+                url: '/components/project/test/problem/problem.html',
+                title: '需求反馈',
+                menuId: 'test-problem'
+            });
+        });
+
+        $('#project-document-form-submit').click(function () {
+            var content = tinyMCE.editors[0].getContent();
+            if (content.trim() == '') {
+                layer.msg("回复内容不能为空");
+                return false;
+            }
+            crab.request('/project/test/problem/feedback', {content: content, problemId: data.id}, function () {
+                layer.msg('回复成功', {icon: 1}, function () {
+                    $('#project-document-form-back').trigger('click');
+                });
+            }, 'POST');
+        });
+
+        function initValue() {
+            var statusList = {
+                0: '<span class="layui-badge layui-bg-orange">待处理</span>',
+                1: '<span class="layui-badge layui-bg-blue">已反馈</span>',
+                2: '<span class="layui-badge layui-bg-red">待继续处理</span>',
+                3: '<span class="layui-badge layui-bg-green">已关闭</span>'
+            };
+
+            var typeList = {
+                1: '界面UI',
+                2: '功能性问题',
+                3: '软件易用性',
+                4: '安装问题',
+                5: '安全性问题',
+                6: '兼容性问题 ',
+                7: '运行效率'
+            };
+
+            $('#title').html(data.title);
+            $('#projectName').html(data.projectName);
+            $('#documentName').html(data.documentName);
+            $('#createByName').html(data.createByName);
+            $('#content').html(data.content);
+            $('#status').html(statusList[data.status]);
+            $('#type').html(typeList[data.type]);
+        }
+
+        function initProblemList() {
+            crab.get('/project/test/problem/feedback/list', {problemId: data.id}, function (feedbackList) {
+                var html = '';
+                for (var i = 0; i < feedbackList.length; i++) {
+                    html += '<blockquote class="layui-elem-quote ' + (feedbackList[i].userType == 0 ? "answer" : "problem") + '">';
+                    html += '<div class="answer-title">';
+                    html += '<span class="title">回复人:</span>';
+                    html += '<span class="user">' + feedbackList[i].createByName + '</span>';
+                    html += '<span class="time">' + feedbackList[i].createTime + '</span>';
+                    html += '</div>';
+                    html += '<div class="answer-content">' + feedbackList[i].content + '</div>';
+                    html += '</blockquote>';
+                }
+                $('#project-wrapper').append(html);
+            });
+        }
+
+    });
+</script>

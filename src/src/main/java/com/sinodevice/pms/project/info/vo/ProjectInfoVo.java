@@ -9,4 +9,7 @@ public class ProjectInfoVo extends ProjectInfo {
     private String responserName;
 
     private String userList;
+
+    private String developerList;
+
 }

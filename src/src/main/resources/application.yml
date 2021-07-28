@@ -18,7 +18,12 @@ spring:
     active: mysql
     #datasource:
     type: com.zaxxer.hikari.HikariDataSource
-
+  servlet:
+    multipart:
+      enabled: true
+      location: D:/tmp/
+      file-size-threshold: 5MB
+      max-file-size: 500MB
 
 # ORM 配置
 mybatis-plus:

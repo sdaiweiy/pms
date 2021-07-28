@@ -1,0 +1,125 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">部门总结</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>数据维护</cite></a>
+          <a><cite>部门总结</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="searchForm" onsubmit="return false;" autocomplete="off">
+                查询日期：<input name="beginDate" id="weekSummaryBeginDate" class="layui-input search-input" type="text"
+                            placeholder="开始日期"/>&nbsp;
+                ~ &nbsp;<input name="endDate" id="weekSummaryEndDate" class="layui-input search-input" type="text"
+                               placeholder="结束日期"/>&emsp;
+                工作总结：<input name="content" id="weekSummaryContent" class="layui-input search-input" type="text"
+                            placeholder="请输入"/>&emsp;
+                工作计划：<input name="plan" id="weekSummaryplan" class="layui-input search-input" type="text"
+                            placeholder="请输入"/>&emsp;
+                <button id="week-sumary-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索
+                </button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="week-sumary-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add">
+                    <i class="layui-icon">&#xe654;</i>填写部门总结
+                </button>
+            </div>
+        </script>
+        <table class="layui-table" id="week-sumary-table" lay-filter="week-sumary-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="week-sumary-table-bar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'laydate', 'index'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var laydate = layui.laydate;
+        var index = layui.index;
+
+        laydate.render({elem: '#weekSummaryBeginDate'});
+        laydate.render({elem: '#weekSummaryEndDate'});
+
+        // 渲染表格
+        var weekSumaryTable = table.render({
+            elem: '#week-sumary-table',
+            toolbar: '#week-sumary-toolbar',
+            url: config.base_server + '/report/week/summary/page',
+            parseData: config.parseData,
+            defaultToolbar: ['filter'],
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {
+                    field: 'title', title: '标题', event: 'details', width: 250, templet: function (d) {
+                        return '<span class="link">' + d.title + '</span>';
+                    }
+                },
+                {field: 'beginDate', title: '开始日期', width: 120},
+                {field: 'endDate', title: '结束日期', width: 120},
+                {fixed: 'right', align: 'center', toolbar: '#week-sumary-table-bar', title: '操作', width: 120}
+            ]]
+        });
+        // 表格顶部操作列
+        table.on('toolbar(week-sumary-table)', function (obj) {
+            if (obj.event === 'add') {
+                showEditModel({});
+            }
+        });
+
+        // 表格操作列事件
+        table.on('tool(week-sumary-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                // 修改
+                showEditModel(data, false);
+            } else if (obj.event === 'del') {
+                // 删除
+                layer.confirm('确定要删除该条部门总结记录吗？', function () {
+                    crab.deleteRow(obj, '/report/week/summary/' + obj.data.id);
+                });
+            } else if (layEvent === 'details') {
+                // 修改
+                showEditModel(data, true);
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data, view) {
+            data.view = view;
+            crab.putFormData(data);
+            crab.popupCenter({
+                title: view ? "查看部门总结明细" : data.id ? '修改部门总结明细' : '添加部门总结明细',
+                area: ["1000px", "700px"],
+                path: '/components/report/week/department-summary-form.html',
+                cancelCallback: function () {
+                    tinyMCE.editors[1].destroy();
+                    tinyMCE.editors[0].destroy();
+                },
+                finish: function () {
+                    weekSumaryTable.reload({where: crab.getSearchForm()});
+                }
+            });
+        };
+
+        // 搜索按钮点击事件
+        $('#week-sumary-btn-search').click(function () {
+            weekSumaryTable.reload({where: crab.getSearchForm()});
+        });
+    });
+</script>

@@ -21,7 +21,7 @@ public interface IProjectInfoService extends IService<ProjectInfo> {
 
     IPage<ProjectInfoVo> page(IPage<ProjectInfoVo> page, ProjectInfo projectInfo);
 
-    List<ProjectInfo> listByUserId();
+    List<ProjectInfo> listByUserId(Long type);
 
     List<ProjectStatusVo> listProjectStatus();
 

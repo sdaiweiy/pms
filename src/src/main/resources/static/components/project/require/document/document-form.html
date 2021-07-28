@@ -1,0 +1,87 @@
+<!-- 参数表单弹窗 -->
+<form id="project-document-form" lay-filter="project-document-form" autocomplete="off" class="layui-form model-form">
+    <input name="id" type="hidden"/>
+    <input name="projectId" id="projectId" type="hidden"/>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">纲要标题</label>
+        <div class="layui-input-block">
+            <input name="title" placeholder="请输入纲要标题" type="text" class="layui-input" minlength="6" maxlength="100"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required-tip">父模块</label>
+        <div class="layui-input-block">
+            <select name="pid" xm-select="pid" xm-select-radio lay-verify="required">
+                <option value="">请选择上级模块</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序号</label>
+        <div class="layui-input-block">
+            <input name="sort" placeholder="请输入排序号" value="1" type="number" class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入备注" class="layui-textarea" maxlength="255"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="project-document-form-submit" lay-submit>保存</button>
+    </div>
+</form>
+<script>
+    layui.use(['layer', 'crab', 'form', 'formSelects'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var edit = false;
+        var formSelects = layui.formSelects;
+
+        // 编辑的参数信息
+        var projectModule = crab.getFormData();
+        if (projectModule.id) {
+            edit = true;
+            // 回显参数数据
+        }
+        form.val('project-document-form', projectModule);
+        form.render();
+
+        // 表单提交事件
+        form.on('submit(project-document-form-submit)', function (data) {
+            crab.request('/project/require/document', data.field, function () {
+                layer.msg(edit ? '修改成功' : '添加成功', {icon: 1});
+                crab.finishPopupCenter();
+            }, edit ? 'PUT' : 'POST');
+            return false;
+        });
+
+        // 上级菜单
+        crab.get('/project/require/document/list', {projectId: projectModule.projectId}, function (data) {
+            var l = data.length;
+            if (l >= 0) {
+                var moduleData = new Array();
+                moduleData.push({id: '0', pid: '0', projectId: projectModule.projectId, name: '无', value: '0'});
+                for (var i = 0; i < data.length; i++) {
+                    moduleData.push({
+                        id: data[i].id,
+                        pid: data[i].pid,
+                        projectId: data[i].projectId,
+                        name: data[i].title,
+                        value: data[i].id
+                    });
+                }
+                formSelects.data('pid', 'local', {arr: crab.createTreeData(moduleData, '0')});
+                if (projectModule) {
+                    formSelects.value('pid', [projectModule.pid + ''])
+                }
+            }
+        });
+
+    });
+</script>

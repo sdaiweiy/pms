@@ -1,0 +1,157 @@
+<div class="layui-card">
+    <div class="layui-card-header">
+        <h2 class="header-title">测试反馈</h2>
+        <span class="layui-breadcrumb pull-right">
+          <a><cite>测试反馈</cite></a>
+          <a><cite>运行维护</cite></a>
+        </span>
+    </div>
+    <div class="layui-card-body">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="searchForm" onsubmit="return false;" autocomplete="off">
+                项目名称： <select name="projectId" id="projectList"></select>&emsp;
+                问题状态： <select name="status">
+                <option value="">请选择</option>
+                <option value="0">待处理</option>
+                <option value="1">已反馈</option>
+                <option value="2">待继续处理</option>
+                <option value="3">已关闭</option>
+            </select>&emsp;
+                提出时间：<input name="beginTime" id="beginTime" class="layui-input search-input" style="width:100px;" type="text"
+                            placeholder="开始时间"/>&nbsp;
+                ~ &nbsp;<input name="endTime" id="endTime" class="layui-input search-input" style="width:100px;" type="text"
+                               placeholder="结束时间"/>&emsp;
+                描述信息： <input name="content"class="layui-input search-input" type="text"/>&emsp;
+                <button id="project-info-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>搜索
+                </button>
+            </form>
+        </div>
+        <!-- 表格顶部操作列 -->
+        <script type="text/html" id="project-info-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>添加</button>
+            </div>
+        </script>
+        <table class="layui-table" id="project-info-table" lay-filter="project-info-table"></table>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="project-info-table-bar">
+    {{#  if(d.createBy == layui.crab.getUser().id && d.status != 3){ }}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="close">关闭</a>
+    {{#  } }}
+</script>
+
+
+<script>
+    layui.use(['form', 'table', 'config', 'index', 'crab', 'laydate'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var config = layui.config;
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var index = layui.index;
+        var laydate = layui.laydate;
+
+        laydate.render({elem: '#beginTime', type: 'datetime'});
+        laydate.render({elem: '#endTime', type: 'datetime'});
+
+        // 渲染表格
+        var problemTable = table.render({
+            elem: '#project-info-table',
+            toolbar: '#project-info-toolbar',
+            url: config.base_server + '/project/test/problem/page',
+            parseData: config.parseData,
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {
+                    field: 'title', title: '标题', event: 'details', templet: function (d) {
+                        return '<span class="link">' + d.title + '</span>';
+                    }
+                },
+                {field: 'projectName', title: '所属项目', width: 150},
+                {field: 'documentName', title: '需求类目', width: 150},
+                {
+                    field: 'status', title: '状态', width: 120, templet: function (d) {
+                        var statusList = {
+                            0: '<span class="layui-badge layui-bg-orange">待处理</span>',
+                            1: '<span class="layui-badge layui-bg-blue">已反馈</span>',
+                            2: '<span class="layui-badge layui-bg-red">待继续处理</span>',
+                            3: '<span class="layui-badge layui-bg-green">已关闭</span>'
+                        };
+                        return statusList[d.status];
+                    }
+                },
+                {field: 'createByName', title: '提出人', width: 100},
+                {field: 'createTime', title: '提出时间', width: 160},
+                {fixed: 'right', align: 'center', toolbar: '#project-info-table-bar', title: '操作', width: 80}
+            ]]
+        });
+
+        // 表格顶部操作列
+        table.on('toolbar(project-info-table)', function (obj) {
+            if (obj.event === 'add') {
+                crab.popupCenter({
+                    path: '/components/project/test/problem/problem-form.html',
+                    title: '添加运行维护',
+                    area: ["1030px", "600px"],
+                    cancelCallback: function () {
+                        tinyMCE.editors[0].destroy();
+                    },
+                    finish: function () {
+                        problemTable.reload({where: crab.getSearchForm()});
+                    }
+                });
+            }
+        });
+
+        // 表格操作列事件
+        table.on('tool(project-info-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+            if (layEvent === 'details') {
+                crab.putFormData(data);
+                index.openNewTab({
+                    url: '/components/project/test/problem/problem-feedback-form.html',
+                    title: '添加运行维护',
+                    menuId: '#test-problem'
+                });
+            } else if (layEvent == 'close') {
+                layer.confirm("确认关闭该问题?", function (d) {
+                    crab.put("/project/test/problem", {id: data.id, status: 3}, function (d) {
+                        layer.msg("问题关闭成功!", {icon: 1});
+                        problemTable.reload({where: crab.getSearchForm()});
+                    })
+                })
+            }
+        });
+
+        // 搜索按钮点击事件
+        $('#project-info-btn-search').click(function () {
+            problemTable.reload({where: crab.getSearchForm()});
+        });
+
+        // 获取所有项目信息
+        crab.get("/project/info/listUserId", {}, function (data) {
+            var html = '<option value="">请选择</option>';
+            for (var i = 0; i < data.length; i++) {
+                html += '<option value="' + data[i].id + ' ">' + data[i].name + '</option>';
+            }
+            $('#projectList').append(html);
+            form.render();
+        }, false, false);
+    });
+</script>
+
+
+<style type="text/css">
+    .layui-form.toolbar .layui-form-select input {
+        width: 100px;
+    }
+    .layui-layer.layui-layer-adminRight {
+        top: 0 !important;
+    }
+</style>

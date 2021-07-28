@@ -4,7 +4,8 @@
 
     <select id="page" resultType="com.sinodevice.pms.project.info.vo.ProjectInfoVo">
         SELECT P1.*,S1.REAL_NAME AS RESPONSER_NAME,
-        (SELECT GROUP_CONCAT(USER_ID) FROM PROJECT_INFO_USER WHERE PROJECT_ID = P1.ID) AS USER_LIST
+        (SELECT GROUP_CONCAT(USER_ID) FROM PROJECT_INFO_USER WHERE PROJECT_ID = P1.ID AND TYPE = 0 ) AS USER_LIST,
+        (SELECT GROUP_CONCAT(USER_ID) FROM PROJECT_INFO_USER WHERE PROJECT_ID = P1.ID AND TYPE = 1 ) AS DEVELOPER_LIST
         FROM PROJECT_INFO P1 JOIN SYS_USER S1 ON P1.RESPONSER = S1.ID
         <where>
             AND P1.DELETED = 0
@@ -23,7 +24,10 @@
 
     <select id="listByUserId" resultType="com.sinodevice.pms.project.info.entity.ProjectInfo">
         SELECT * FROM project_info WHERE RESPONSER = #{userId} OR ID IN (
-               SELECT DISTINCT PROJECT_ID FROM project_info_user WHERE USER_ID = #{userId}
+        SELECT DISTINCT PROJECT_ID FROM project_info_user WHERE USER_ID = #{userId}
+        <if test="type != null">
+            AND TYPE = #{type}
+        </if>
         )
     </select>
 

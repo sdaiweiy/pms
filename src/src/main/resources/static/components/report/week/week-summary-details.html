@@ -8,8 +8,15 @@
     </div>
     <div class="layui-card-body">
         <h1 class="summary-title text-center" id="summary-title"></h1>
+        <h2 class="summary-title">1.部门工作总结</h2>
+        <div class="summary-content">
+            <h4 class="summary-title" style="color: red;">工作总结:</h4>
+            <div id="department-content" style="padding-left:20px;color: #000;"></div>
+            <h4 class="summary-title" style="color: red;">工作计划:</h4>
+            <div id="department-plan" style="padding-left:20px;color: #000;"></div>
+        </div>
 
-        <h2 class="summary-title">1.本周工作总结</h2>
+        <h2 class="summary-title">2.本周工作总结</h2>
         <div class="summary-content">
             <table class="layui-table" id="report-week-summary-table" lay-size="sm">
                 <colgroup>
@@ -31,7 +38,7 @@
             </table>
         </div>
 
-        <h2 class="summary-title">2.下周计划清单</h2>
+        <h2 class="summary-title">3.下周计划清单</h2>
         <div class="summary-content">
             <table class="layui-table" id="report-week-plan-table" lay-size="sm">
                 <colgroup>
@@ -49,7 +56,7 @@
             </table>
         </div>
 
-        <h2 class="summary-title">3.项目进展情况</h2>
+        <h2 class="summary-title">4.项目进展情况</h2>
         <div class="summary-content">
             <table class="layui-table" id="report-project-status" lay-size="sm">
                 <colgroup>
@@ -79,7 +86,7 @@
             </table>
         </div>
 
-        <h2 class="summary-title">4.本周工作明细</h2>
+        <h2 class="summary-title">5.本周工作明细</h2>
         <div class="summary-content" id="report-week-details"></div>
     </div>
 </div>
@@ -119,9 +126,17 @@
 
         $('#summary-title').html(weekInfo.beginDate + ' 至 ' + weekInfo.endDate + ' (第' + weekIndex + '周) 工作周报');
 
+        crab.get('/report/week/summary/getWeekSummary', {
+            beginDate: weekInfo.beginDate,
+            endDate: weekInfo.endDate
+        }, function (data) {
+            $('#department-content').html(data.content);
+            $('#department-plan').html(data.plan);
+        });
+
         crab.get('/report/week/list', {limit: 99, page: 1, weekIndex: weekIndex}, function (data) {
             data = data.records;
-            var summaryHtml = '', planHtml = ''
+            var summaryHtml = '', planHtml = '';
             for (var i = 0; i < data.length; i++) {
                 summaryHtml += '<tr><td>' + data[i].realName + '</td><td>' + data[i].remark + '</td><td align="center">' + data[i].workHour + '</td><td align="center">' + (new BigNumber(data[i].workHour).minus(42).toFixed(2)) + '</td></tr>';
                 planHtml += '<tr><td>' + data[i].realName + '</td><td>' + data[i].plan + '</td></tr>';

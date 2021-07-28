@@ -121,13 +121,17 @@
                     }
                 },
                 {
-                    field: 'workHourSum', title: '消耗', width: 60, templet: function (d) {
-                        return d.workHourSum + 'h';
+                    field: 'workHourSum', title: '消耗', width: 80, templet: function (d) {
+                        return d.workHourSum ? d.workHourSum + 'h' : '-';
                     }
                 },
                 {
-                    field: 'planHour', title: '剩余', width: 60, templet: function (d) {
-                        return d.planHour - d.workHourSum + 'h';
+                    field: 'planHour', title: '剩余', width: 80, templet: function (d) {
+                        if (d.workHourSum && d.planHour) {
+                            return (d.planHour - d.workHourSum).toFixed(2) + 'h';
+                        } else {
+                            return '-';
+                        }
                     }
                 },
                 {field: 'createByName', title: '创建人', width: 80, hide: true},
@@ -215,7 +219,7 @@
 
         // 获取所有项目信息
         function initProjectSelect() {
-            crab.get("/project/info/listUserId", {}, function (data) {
+            crab.get("/project/info/listUserId", {type: 0}, function (data) {
                 var html = '<option value="">请选择项目</option>';
                 for (var i = 0; i < data.length; i++) {
                     html += '<option  value="' + data[i].id + '">' + data[i].name + '</option>';

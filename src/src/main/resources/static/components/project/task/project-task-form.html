@@ -173,7 +173,8 @@
                 initModuleSelect(data.value);
                 initUsers(data.value);
             } else {
-                $('#edit-moduleList').html('').append('<option value="">请选择项目</option>');
+                //$('#edit-moduleList').html('').append('<option value="">请选择项目</option>');
+                formSelects.data('moduleId', 'local', {arr: []});
                 formSelects.data('userIds', 'local', {arr: []});
                 form.render();
             }
@@ -181,7 +182,7 @@
 
         // 获取所有项目信息
         function initProjectSelect() {
-            crab.get("/project/info/listUserId", {}, function (data) {
+            crab.get("/project/info/listUserId", {type: 0}, function (data) {
                 var html = '<option value="">请选择</option>';
                 for (var i = 0; i < data.length; i++) {
                     var selected = '';

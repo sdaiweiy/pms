@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -12,6 +13,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.text.DateFormat;
@@ -35,7 +37,6 @@ public class FangaoConfigurer implements WebMvcConfigurer {
 
 //    @Autowired
 //    protected HttpServletRequest request;
-
 
     /**
      * <p>
@@ -92,4 +93,5 @@ public class FangaoConfigurer implements WebMvcConfigurer {
         objectMapper.configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true);
         return new MappingJackson2HttpMessageConverter(objectMapper);
     }
+
 }
