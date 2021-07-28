@@ -1,0 +1,141 @@
+<div class="layui-card">
+    <div class="layui-card-body daily">
+        <!-- 搜索条件 -->
+        <div class="layui-form toolbar">
+            <form id="searchForm" onsubmit="return false;" autocomplete="off">
+                <div class="search-form-main">
+                    <div>
+                        <div class="search-form-base">
+                            <div class="search-form-grid">
+                                <div class="search-form-item-1">
+                                    <span class="search-form-span">项目名称：</span>
+                                </div>
+                                <div class="search-form-item-2">
+                                    <input name="projectName" class="layui-input search-input" type="text"
+                                           placeholder="请输入"/>
+                                </div>
+                                <div class="search-form-item-1">
+                                    <span class="search-form-span">日报时间：</span>
+                                </div>
+                                <div class="search-form-item-2">
+                                    <input id="beginDate" name="beginDate" class="layui-input search-input" type="text"
+                                           readonly/>
+                                </div>
+                                <div class="search-form-item-1">
+                                    <span class="search-form-span">~</span>
+                                </div>
+                                <div class="search-form-item-2">
+                                    <input id="endDate" name="endDate" class="layui-input search-input" type="text"
+                                           readonly/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="search-form-right">
+                        <button id="daily-btn-search" class="layui-btn icon-btn"><i
+                                class="layui-icon">&#xe615;</i>搜索
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <table class="layui-table" id="daily-table"
+               lay-filter="daily-table"></table>
+    </div>
+</div>
+
+<!-- 表格顶部操作列 -->
+<script type="text/html" id="daily-toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="add">
+            <i class="layui-icon">&#xe654;</i>添加
+        </button>
+    </div>
+</script>
+
+<script>
+    layui.use(['form', 'table', 'config', 'crab', 'laydate', 'formSelects'], function () {
+        var form = layui.form
+        var table = layui.table
+        var config = layui.config
+        var layer = layui.layer
+        var crab = layui.crab
+        var laydate = layui.laydate
+        var index = layui.index
+
+        laydate.render({
+            elem: '#beginDate',
+            type: 'date',
+            max: +0
+        });
+        laydate.render({
+            elem: '#endDate',
+            type: 'date',
+            max: +0
+        });
+
+
+        // 搜索按钮点击事件
+        $('#daily-btn-search').click(function () {
+            tableTemplate.reload({where: crab.getSearchForm()});
+        })
+
+        // 渲染表格
+        var tableTemplate = table.render({
+            elem: '#daily-table',
+            toolbar: '#daily-toolbar',
+            url: config.base_server + '/report/daily/page',
+            parseData: config.parseData,
+            defaultToolbar: ['filter'],
+            page: true,
+            cols: [[
+                {type: 'numbers'},
+                {
+                    field: 'date', title: '日报时间', event: 'detail', width: 120, templet: function (d) {
+                        return '<span class="link">' + d.date + '</span>'
+                    }
+                },
+                {field: 'projectName', title: '项目名称', width: 200},
+                {field: 'totalRequireTime', title: '总需求调研时间', width: 150},
+                {field: 'totalDevTime', title: '总协助开发时间', width: 150},
+                {field: 'totalTestTime', title: '总测试上线时间', width: 150},
+                {field: 'totalOpTime', title: '总实施运维时间', width: 150},
+                {field: 'totalOtherTime', title: '总其它时间', width: 150},
+                {field: 'totalTime', title: '总时长', width: 150},
+                {field: 'totalOverTime', title: '总加班时长', width: 150}
+            ]]
+        })
+
+        // 表格顶部操作列
+        table.on('toolbar(daily-table)', function (obj) {
+            if (obj.event === 'add') {
+                crab.get('/report/daily/has', {}, function (res) {
+                    if (res.length !== 0) {
+                        layer.msg('今日已存在日报');
+                    } else {
+                        openTableAdd({});
+                    }
+                })
+
+            }
+        })
+
+        // 表格操作列事件
+        table.on('tool(daily-table)', function (obj) {
+            var data = obj.data
+            var layEvent = obj.event
+
+            if (layEvent === 'detail') {
+                openTableAdd(data);
+            }
+        })
+
+        function openTableAdd(data) {
+            crab.putFormData(data);
+            index.openNewTab({
+                url: 'components/report/daily/daily-form.html'
+            })
+        }
+
+    })
+</script>

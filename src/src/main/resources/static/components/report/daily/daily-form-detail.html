@@ -1,0 +1,112 @@
+<!-- 参数表单弹窗 -->
+<form id="daily-form-detail-form" lay-filter="daily-form-detail-form"
+      class="layui-form model-form" autocomplete="off">
+    <input name="id" type="hidden"/>
+    <input name="key" type="hidden"/>
+
+    <div class="layui-col-md6">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">需求调研</label>
+            <div class="layui-input-block">
+                <input name="requireTime" type="text" class="layui-input item-time"
+                       maxlength="20" lay-verify="required" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">协助开发</label>
+            <div class="layui-input-block">
+                <input name="devTime" type="text" class="layui-input item-time"
+                       maxlength="20" lay-verify="required" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">总时长</label>
+            <div class="layui-input-block">
+                <input id="daily-form-detail-total-time" name="totalTime" type="text" class="layui-input"
+                       maxlength="20" lay-verify="required" value="0" readonly/>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-col-md6">
+        <div class="layui-form-item">
+            <label class="layui-form-label">测试上线</label>
+            <div class="layui-input-block">
+                <input name="testTime" type="text" class="layui-input item-time"
+                       maxlength="20" lay-verify="required" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">实施运维</label>
+            <div class="layui-input-block">
+                <input name="opTime" type="text" class="layui-input item-time"
+                       maxlength="20" lay-verify="required" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">项目类型</label>
+            <div class="layui-input-block">
+                <select name="projectId" id="daily-form-detail-project">
+                    <option value=""></option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">工作内容</label>
+        <div class="layui-input-block">
+            <textarea name="content" class="layui-textarea" lay-verify="required"
+                      style="height: 300px"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary close daily-form-detail-button button-none other"
+                ew-event="closeDialog" type="button">取消
+        </button>
+        <button class="layui-btn daily-form-detail-button button-none other"
+                lay-filter="daily-form-detail-submit" lay-submit>保存
+        </button>
+    </div>
+</form>
+
+<script>
+    layui.use(['layer', 'crab', 'form'], function () {
+        var layer = layui.layer;
+        var crab = layui.crab;
+        var form = layui.form;
+        var item = crab.getFormData();
+        crab.putFormData();
+
+
+        //渲染项目类型
+        $('#daily-form-detail-project').html(item.projectArr.map(p => {
+            return '<option value="' + p.id + '">' + p.name + '</option>'
+        }).join());
+
+        if (item.id) {
+            form.val('daily-form-detail-form', item);
+        }
+
+        // 表单提交事件
+        form.on('submit(daily-form-detail-submit)', function (data) {
+            crab.putFormData(data.field)
+            crab.finishPopupCenter();
+            return false;
+        });
+
+        $('.item-time').each(function () {
+            $(this).on('keyup blur', function (e) {
+                var totalTime = 0;
+                $('.item-time').each(function (){
+                    totalTime = new BigNumber(totalTime).plus(new BigNumber(this.value))
+                })
+                $('#daily-form-detail-total-time').val(totalTime);
+            });
+        })
+
+        form.render();
+    });
+</script>

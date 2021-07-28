@@ -1,0 +1,428 @@
+<div class="layui-card daily-form">
+    <div class="layui-card-body">
+        <form id="daily-form" lay-filter="daily-form" class="layui-form"
+              autocomplete="off">
+            <input id="id" name="id" type="hidden"/>
+            <div class="form-header">
+                <div class="form-header-button">
+                    <button class="layui-btn layui-btn-primary" type="button"
+                            id="daily-form-back">返回
+                    </button>
+                    <button class="layui-btn save" lay-submit type="button"
+                            lay-filter="daily-form-save"
+                            id="daily-form-save">保存
+                    </button>
+                </div>
+                <div id="daily-form-title" class="form-title"></div>
+            </div>
+            <!--合计信息-->
+            <div class="title-split">
+                合计信息
+            </div>
+            <table cellspacing="0" cellpadding="0" width="100%" class="form-table" align="center">
+                <tr>
+                    <td width="25%" class="title">总需求调研（小时）</td>
+                    <td width="25%">
+                        <input name="totalRequireTime" type="text" class="layui-input" readonly/>
+                    </td>
+                    <td width="25%" class="title">总协助开发（小时）</td>
+                    <td width="25%">
+                        <input name="totalDevTime" type="text" class="layui-input" readonly/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title">总测试上线（小时）</td>
+                    <td>
+                        <input name="totalTestTime" type="text" class="layui-input" readonly/>
+                    </td>
+                    <td class="title">总实施运维（小时）</td>
+                    <td>
+                        <input name="totalOpTime" type="text" class="layui-input" readonly/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title">加班时长（小时）</td>
+                    <td>
+                        <input name="totalOverTime" type="text" class="layui-input" readonly/>
+                    </td>
+                    <td class="title">其他时长（小时）</td>
+                    <td>
+                        <input id="daily-form-total-other-time" name="totalOtherTime" type="text" class="layui-input"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title">总时长（小时）</td>
+                    <td colspan="3">
+                        <input name="totalTime" type="text" class="layui-input" readonly/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title">提交人</td>
+                    <td>
+                        <input name="createByName" type="text" class="layui-input" readonly/>
+                    </td>
+                    <td class="title">提交时间</td>
+                    <td>
+                        <input name="createTime" type="text" class="layui-input" readonly/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title">修改人</td>
+                    <td>
+                        <input name="updateByName" type="text" class="layui-input" readonly/>
+                    </td>
+                    <td class="title">修改时间</td>
+                    <td>
+                        <input name="updateTime" type="text" class="layui-input" readonly/>
+                    </td>
+                </tr>
+
+            </table>
+            <br/>
+            <!--项目明细-->
+            <div class="title-split">
+                项目明细
+                <button class="layui-btn layui-btn-xs pull-right" type="button"
+                        id="daily-form-details-add">
+                    添加明细
+                </button>
+            </div>
+            <table class="layui-table" id="daily-form-details-table"
+                   lay-filter="daily-form-details-table"></table>
+
+        </form>
+        <br/>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="daily-form-table-bar">
+    <a class="layui-btn layui-btn-danger layui-btn-xs"
+       lay-event="del">删除</a>
+</script>
+
+<script>
+    layui.use(['config', 'laydate', 'crab', 'table', 'form', 'common'], function () {
+        var crab = layui.crab;
+        var form = layui.form;
+        var config = layui.config;
+        var index = layui.index;
+        var table = layui.table;
+        var layer = layui.layer;
+        var common = layui.common;
+        var data = crab.getFormData();
+        var cacheData = {
+            totalRequireTime: 0,
+            totalDevTime: 0,
+            totalTestTime: 0,
+            totalOpTime: 0,
+            totalTime: 0,
+            totalOtherTime: 0,
+            totalOverTime: 0,
+            details: []
+        };
+
+
+        //渲染表格
+        var tableTemplate;
+
+        if (data.id) {
+            crab.get('/report/daily/getOneById', {id: data.id}, function (res) {
+                for (var i = 0; i < res.details.length; i++) {
+                    res.details[i].key = i;
+                }
+                cacheData = res;
+                cacheData.title = res.createTime.substring(0, 10).replace('-', '年').replace('-', '月') + '日工作日报';
+                val();
+            })
+        } else {
+            var data = new Date();
+            cacheData.title = common.dateFormat.call(data, 'yyyy年MM月dd日工作日报');
+            cacheData.createByName = crab.getUser().realName;
+            val();
+        }
+
+        //其他修改事件
+        $('#daily-form-total-other-time').on('keyup blur', function (e) {
+            cacheData.totalOtherTime = $(this).val();
+            renderBaseTime();
+        });
+
+        //添加明细
+        $('#daily-form-details-add').click(function () {
+            showEditForm({});
+        });
+
+        // 表格操作列事件
+        table.on('tool(daily-form-details-table)', function (obj) {
+            var data = obj.data
+            var layEvent = obj.event
+
+            if (layEvent === 'detail') {
+                showEditForm(data);
+            } else if (layEvent === 'del') {
+                removeDetailByKey(data.key);
+            }
+        })
+
+        // 保存按钮事件
+        form.on('submit(daily-form-save)', function (data) {
+            if (cacheData.details.length === 0) {
+                layer.msg('项目不能为空');
+                return false;
+            }
+            crab.post('/report/daily' + (cacheData.id ? '/update/dto' : '/save/dto'), JSON.stringify(cacheData), function (res) {
+                layer.msg('成功', {icon: 1, time: 1500});
+                $('#daily-form-back').click();
+            }, true)
+            return false;
+        });
+
+        function val() {
+            //渲染表头
+            $('#daily-form-title').html(cacheData.title);
+            //渲染基础信息
+            form.val('daily-form', cacheData);
+            //渲染表格
+            tableTemplate = table.render(getDetailsTableConfig())
+        }
+
+        function getDetailsTableConfig() {
+            var tableConfig = {
+                elem: '#daily-form-details-table',
+                data: cacheData.details,
+                parseData: config.parseData,
+                defaultToolbar: ['filter'],
+                page: false,
+                cols: [[
+                    {type: 'numbers'},
+                    {
+                        field: 'projectName', title: '项目名称', width: 150, event: 'detail', templet: function (d) {
+                            return '<span class="link">' + d.projectName + '</span>'
+                        }
+                    },
+                    {
+                        field: 'content', title: '工作内容', width: 300, templet: function (d) {
+                            return '<p>' + d.content.replaceAll('\r', '</p><p>') + '</p>'
+                        }
+                    },
+                    {field: 'requireTime', title: '需求调研', width: 60},
+                    {field: 'devTime', title: '协助开发', width: 60},
+                    {field: 'testTime', title: '测试上线', width: 60},
+                    {field: 'opTime', title: '实施运维', width: 60},
+                    {field: 'totalTime', title: '总时长', width: 80},
+                    {
+                        align: 'center',
+                        toolbar: '#daily-form-table-bar',
+                        title: '操作',
+                        width: 80
+                    }
+                ]]
+            }
+
+            return tableConfig;
+        }
+
+        //报销明细弹窗
+        function showEditForm(data) {
+            //过滤项目类型
+            crab.get('/project/info/listUserId', {type: 0}, function (res) {
+                var item = {};
+                //塞入数据
+                if (data.key || parseInt(data.key) === 0) {
+                    item = getByKey(data.key);
+                }
+                //将已选中的项目类型过滤
+                res = res.filter(r => {
+                    for (var detail of cacheData.details) {
+                        if (detail.projectId == r.id && detail.projectId != data.projectId) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                item.projectArr = res;
+                crab.putFormData(item);
+
+                crab.popupCenter({
+                    title: data.key ? '修改项目明细' : '添加项目明细',
+                    area: '800px',
+                    path: 'components/report/daily/daily-form-detail.html',
+                    finish: function () {
+                        var item = crab.getFormData();
+                        crab.putFormData();
+                        crab.get('/project/info/' + item.projectId, {}, function (project) {
+                            item.projectName = project.name;
+                            if ((item.key || parseInt(item.key) === 0)) {
+                                for (var i = 0; i < cacheData.details.length; i++) {
+                                    if (cacheData.details[i].key == item.key) {
+                                        cacheData.details[i] = item;
+                                        break;
+                                    }
+                                }
+                            } else {
+                                item.key = cacheData.details.length;
+                                cacheData.details.push(item);
+                            }
+                            renderBaseTime();
+                            tableTemplate.reload(getDetailsTableConfig());
+                        })
+
+                    }
+                })
+
+            })
+
+        }
+
+        function renderBaseTime() {
+            cacheData.totalRequireTime = 0;
+            cacheData.totalDevTime = 0;
+            cacheData.totalTestTime = 0;
+            cacheData.totalOpTime = 0;
+            cacheData.totalTime = 0;
+            cacheData.totalOverTime = 0;
+
+            cacheData.details.forEach(d => {
+                cacheData.totalRequireTime = new BigNumber(cacheData.totalRequireTime).plus(new BigNumber(d.requireTime));
+                cacheData.totalDevTime = new BigNumber(cacheData.totalDevTime).plus(new BigNumber(d.devTime));
+                cacheData.totalTestTime = new BigNumber(cacheData.totalTestTime).plus(new BigNumber(d.testTime));
+                cacheData.totalOpTime = new BigNumber(cacheData.totalOpTime).plus(new BigNumber(d.opTime));
+                cacheData.totalTime = new BigNumber(cacheData.totalTime).plus(new BigNumber(d.totalTime));
+            });
+            cacheData.totalTime = new BigNumber(cacheData.totalTime).plus(new BigNumber(cacheData.totalOtherTime));
+            if (cacheData.totalTime > 7) {
+                cacheData.totalOverTime = new BigNumber(cacheData.totalTime).minus(new BigNumber(7));
+            }
+            form.val('daily-form', cacheData);
+        }
+
+
+        function getByKey(key) {
+            for (var detail of cacheData.details) {
+                if (detail.key == key) {
+                    return detail;
+                }
+            }
+        }
+
+        function removeDetailByKey(key) {
+            var newArr = []
+            for (var i = 0, j = 0; i < cacheData.details.length; i++) {
+                if (cacheData.details[i].key != key) {
+                    cacheData.details[i].key = j++;
+                    newArr.push(cacheData.details[i]);
+                }
+            }
+            cacheData.details = newArr;
+            renderBaseTime();
+            tableTemplate.reload(getDetailsTableConfig());
+        }
+
+        //返回按钮
+        $('#daily-form-back').click(function () {
+            layui.index.openNewTab({
+                url: 'components/report/daily/daily.html'
+            });
+        });
+
+
+    })
+
+</script>
+<style>
+    .layui-card {
+        margin: 0 auto;
+        width: 950px;
+    }
+
+    .layui-card-body {
+        padding: 10px 25px;
+    }
+
+    .quick-select li {
+        line-height: 38px;
+        cursor: pointer;
+        border-left: 2px solid transparent;
+    }
+
+    /*.form-header span {
+        position: absolute;
+        right: 0;
+        top: 0;
+    }*/
+
+    .title-split {
+        margin: 0 auto;
+        line-height: 30px;
+        padding-left: 10px;
+        border-left: 4px solid #009688;
+        font-size: 16px;
+        color: #009688;
+        font-weight: bold;
+        box-sizing: border-box;
+    }
+
+    .form-detail-table td.title, .form-table td.title {
+        background: #f2f2f2;
+    }
+
+    .form-table {
+        color: #666;
+    }
+
+    .layui-table th {
+        font-weight: bold;
+    }
+
+    .daily-form .xm-select-parent .xm-input {
+        border: 0;
+    }
+
+    .form-table td {
+        text-overflow: inherit;
+        white-space: normal;
+        height: auto;
+    }
+
+    .form-selects-tips {
+        position: absolute;
+        right: 0;
+        color: #A0A0A0;
+        font-size: 12px;
+    }
+
+    .form-header-button {
+        overflow: hidden;
+    }
+
+    .form-header-button button {
+        float: right;
+        margin-left: 10px;
+    }
+
+    .form-title {
+        position: relative;
+        margin: 20px 0;
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        color: black;
+    }
+
+
+    .daily-form-enclosure img {
+        width: 10%;
+        margin-top: 4px;
+    }
+
+    .daily-form .button-show {
+        display: inline;
+    }
+
+    .daily-form .layui-table-cell {
+        height: auto;
+        white-space: normal;
+    }
+
+</style>

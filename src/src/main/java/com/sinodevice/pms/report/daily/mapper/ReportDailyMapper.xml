@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinodevice.pms.report.daily.mapper.ReportDailyMapper">
+
+    <select id="page" resultType="com.sinodevice.pms.report.daily.vo.ReportDailyPageVo">
+
+        SELECT r1.*,group_concat(p1.`NAME`) as PROJECT_NAME FROM `report_daily` r1
+        JOIN report_daily_details r2 ON r2.DAILY_ID = r1.ID
+        JOIN project_info p1 ON p1.ID = r2.PROJECT_ID
+        <where>
+            <if test="dto.loginUserId != null">
+                and r1.CREATE_BY = #{dto.loginUserId}
+            </if>
+            <if test="dto.beginDate != null">
+                and r1.DATE <![CDATA[>=]]> #{dto.beginDate}
+            </if>
+            <if test="dto.endDate != null">
+                and r1.DATE <![CDATA[<=]]> #{dto.endDate}
+            </if>
+            and r1.DELETED = 0
+        </where>
+        GROUP BY r1.ID
+        <if test="dto.projectName!=null and dto.projectName!=''">
+            HAVING PROJECT_NAME LIKE concat('%',#{dto.projectName},'%')
+        </if>
+        ORDER BY r1.CREATE_TIME DESC
+    </select>
+
+    <select id="getOneById" resultType="com.sinodevice.pms.report.daily.vo.ReportDailyVo">
+        SELECT r1.*, s1.REAL_NAME AS CREATE_BY_NAME, s2.REAL_NAME AS UPDATE_BY_NAME
+        FROM report_daily r1
+                 LEFT JOIN sys_user s1 ON s1.ID = r1.CREATE_BY
+                 LEFT JOIN sys_user s2 ON s2.ID = r1.UPDATE_BY
+        WHERE r1.DELETED = 0
+          and r1.ID = #{id}
+    </select>
+
+</mapper>

@@ -1,0 +1,207 @@
+.search-form-main {
+    width: 1200px;
+    display: grid;
+    grid-template-columns:80% 20%;
+}
+
+.search-form-main .search-form-grid > div {
+    float: left;
+    margin-top: 6px;
+}
+
+.search-form-main .search-form-more {
+    display: none;
+}
+
+.search-form-main .search-form-item-1 {
+    width: 11.11%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-item-2 {
+    width: 22.22%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-item-5 {
+    width: 55.55%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-item-8 {
+    width: 88.88%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-xs-item-1 {
+    width: 15%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-xs-item-2 {
+    width: 35%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-xs-item-3 {
+    width: 85%;
+    min-height: 38px;
+}
+
+
+.search-form-main .search-form-ms-item-1 {
+    width: 8%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-ms-item-2 {
+    width: 16%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-ms-item-3 {
+    width: 40%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-ms-item-4 {
+    width: 64%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-ms-item-5 {
+    width: 88%;
+    min-height: 38px;
+}
+
+.search-form-main .search-form-span {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    line-height: 36px;
+}
+
+.search-form-main .layui-input, .search-form-main .layui-form-select, .search-form-main .layui-form-select .layui-select-title input {
+    width: 100%;
+}
+
+.search-form-main .search-form-right {
+    padding-top: 8px;
+    padding-left: 6px;
+}
+
+.form-table {
+    margin-top: 10px;
+    border: solid #333;
+    border-width: 1px 0 0 0;
+    color: #333;
+    max-width: 1200px;
+}
+
+.form-table td {
+    border: solid #333;
+    border-width: 0 1px 1px 1px;
+    font-size: 14px;
+    text-align: left;
+    height: 38px;
+    position: relative;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.form-detail-table td {
+    text-align: left;
+    padding-left: 5px;
+}
+
+.form-detail-table td.split,
+.form-table td.split {
+    font-weight: bold;
+    padding: 5px 0;
+    height: 20px;
+    text-align: center;
+}
+
+.form-detail-table td.title,
+.form-table td.title {
+    background: #D6D6D6;
+    font-weight: bold;
+    text-align: center;
+}
+
+.form-table td input,
+.form-table td textarea {
+    border: 0;
+}
+
+.form-table td textarea {
+    min-height: 80px;
+    resize: none;
+}
+
+.form-table td .required {
+    color: red;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+.form-table td .layui-form-radio {
+    margin: 0;
+}
+
+.form-table .footer,
+.form-table .footer td {
+    border: 0;
+}
+
+.form-table td .btn-select {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    margin-top: -12px;
+}
+
+.form-table td .left {
+    float: left;
+    margin-left: 10px;
+}
+
+.form-table input:disabled,
+.form-table select:disabled,
+.form-table .layui-disabled,
+.form-table .td-disabled,
+.form-table textarea:disabled {
+    background: #f6f6f6;
+    color: #333 !important;
+}
+
+.form-table .layui-checkbox-disbaled em {
+    color: #333 !important;
+}
+
+.form-table .layui-radio-disbaled {
+    background: transparent;
+}
+
+.form-audit-table {
+    margin-top: 5px;
+    max-width: 1200px;
+}
+
+.form-audit-table input {
+    border: 0;
+    width: 250px;
+    display: inline;
+}
+
+.form-audit-table td {
+    color: #333;
+    font-size: 14px;
+    height: 38px;
+}
+
+.form-audit-table td.title {
+    font-weight: bold;
+    text-align: right;
+}
