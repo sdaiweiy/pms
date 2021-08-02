@@ -10,14 +10,14 @@
             <label class="layui-form-label">需求调研</label>
             <div class="layui-input-block">
                 <input name="requireTime" type="text" class="layui-input item-time"
-                       maxlength="20" lay-verify="required" value="0"/>
+                       maxlength="20" lay-verify="required|time" value="0"/>
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">协助开发</label>
             <div class="layui-input-block">
                 <input name="devTime" type="text" class="layui-input item-time"
-                       maxlength="20" lay-verify="required" value="0"/>
+                       maxlength="20" lay-verify="required|time" value="0"/>
             </div>
         </div>
         <div class="layui-form-item">
@@ -34,14 +34,14 @@
             <label class="layui-form-label">测试上线</label>
             <div class="layui-input-block">
                 <input name="testTime" type="text" class="layui-input item-time"
-                       maxlength="20" lay-verify="required" value="0"/>
+                       maxlength="20" lay-verify="required|time" value="0"/>
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">实施运维</label>
             <div class="layui-input-block">
                 <input name="opTime" type="text" class="layui-input item-time"
-                       maxlength="20" lay-verify="required" value="0"/>
+                       maxlength="20" lay-verify="required|time" value="0"/>
             </div>
         </div>
         <div class="layui-form-item">
@@ -106,6 +106,10 @@
                 $('#daily-form-detail-total-time').val(totalTime);
             });
         })
+
+        form.verify({
+            time: [/^(\d+)(\.\d{1})?$/, '时间异常，为一位小数']
+        });
 
         form.render();
     });

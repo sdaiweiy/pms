@@ -7,26 +7,32 @@
                     <div>
                         <div class="search-form-base">
                             <div class="search-form-grid">
-                                <div class="search-form-item-1">
+                                <div class="search-form-ms-item-1">
                                     <span class="search-form-span">项目名称：</span>
                                 </div>
-                                <div class="search-form-item-2">
+                                <div class="search-form-ms-item-2">
                                     <input name="projectName" class="layui-input search-input" type="text"
                                            placeholder="请输入"/>
                                 </div>
-                                <div class="search-form-item-1">
+                                <div class="search-form-ms-item-1">
                                     <span class="search-form-span">日报时间：</span>
                                 </div>
-                                <div class="search-form-item-2">
+                                <div class="search-form-ms-item-2">
                                     <input id="beginDate" name="beginDate" class="layui-input search-input" type="text"
                                            readonly/>
                                 </div>
-                                <div class="search-form-item-1">
+                                <div class="search-form-ms-item-1">
                                     <span class="search-form-span">~</span>
                                 </div>
-                                <div class="search-form-item-2">
+                                <div class="search-form-ms-item-2">
                                     <input id="endDate" name="endDate" class="layui-input search-input" type="text"
                                            readonly/>
+                                </div>
+                                <div class="search-form-ms-item-1">
+                                    <span class="search-form-span">创建人</span>
+                                </div>
+                                <div class="search-form-ms-item-2">
+                                    <input name="createByName" class="layui-input search-input" type="text"/>
                                 </div>
                             </div>
                         </div>
@@ -54,7 +60,7 @@
 </script>
 
 <script>
-    layui.use(['form', 'table', 'config', 'crab', 'laydate', 'formSelects'], function () {
+    layui.use(['form', 'table', 'config', 'crab', 'laydate', 'formSelects', 'common'], function () {
         var form = layui.form
         var table = layui.table
         var config = layui.config
@@ -62,17 +68,12 @@
         var crab = layui.crab
         var laydate = layui.laydate
         var index = layui.index
+        var common = layui.common
 
-        laydate.render({
-            elem: '#beginDate',
-            type: 'date',
-            max: +0
-        });
-        laydate.render({
-            elem: '#endDate',
-            type: 'date',
-            max: +0
-        });
+        var lastDate = common.dateFormat.call(new Date((new Date).getTime() - 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
+
+        laydate.render({elem: '#beginDate', type: 'date', value: lastDate});
+        laydate.render({elem: '#endDate', type: 'date', value: lastDate});
 
 
         // 搜索按钮点击事件
@@ -88,6 +89,10 @@
             parseData: config.parseData,
             defaultToolbar: ['filter'],
             page: true,
+            where: {
+                beginDate: lastDate,
+                endDate: lastDate
+            },
             cols: [[
                 {type: 'numbers'},
                 {
@@ -95,6 +100,7 @@
                         return '<span class="link">' + d.date + '</span>'
                     }
                 },
+                {field: 'createByName', title: '人员姓名', width: 100},
                 {field: 'projectName', title: '项目名称', width: 200},
                 {field: 'totalRequireTime', title: '总需求调研时间', width: 150},
                 {field: 'totalDevTime', title: '总协助开发时间', width: 150},
@@ -109,14 +115,7 @@
         // 表格顶部操作列
         table.on('toolbar(daily-table)', function (obj) {
             if (obj.event === 'add') {
-                crab.get('/report/daily/has', {}, function (res) {
-                    if (res.length !== 0) {
-                        layer.msg('今日已存在日报');
-                    } else {
-                        openTableAdd({});
-                    }
-                })
-
+                openTableAdd({});
             }
         })
 

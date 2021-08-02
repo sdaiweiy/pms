@@ -35,7 +35,6 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
 
     @Override
     public IPage<ReportDailyPageVo> page(IPage<ReportDailyPageVo> page, ReportDailyPageDto dto) {
-        dto.setLoginUserId(LoginHelper.getAccount().getId());
         return this.baseMapper.page(page, dto);
     }
 
@@ -48,7 +47,6 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
 
     @Override
     public Boolean saveDto(ReportDailyDto dto) {
-        dto.setDate(LocalDate.now());
         this.save(dto);
         dto.getDetails().forEach(d -> d.setDailyId(dto.getId()));
         reportDailyDetailsService.saveBatch(dto.getDetails());

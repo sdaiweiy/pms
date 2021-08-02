@@ -4,18 +4,19 @@
 
     <select id="page" resultType="com.sinodevice.pms.report.daily.vo.ReportDailyPageVo">
 
-        SELECT r1.*,group_concat(p1.`NAME`) as PROJECT_NAME FROM `report_daily` r1
+        SELECT r1.*,group_concat(p1.`NAME`) as PROJECT_NAME,s1.REAL_NAME AS CREATE_BY_NAME FROM `report_daily` r1
         JOIN report_daily_details r2 ON r2.DAILY_ID = r1.ID
         JOIN project_info p1 ON p1.ID = r2.PROJECT_ID
+        JOIN sys_user s1 ON s1.ID = r1.CREATE_BY
         <where>
-            <if test="dto.loginUserId != null">
-                and r1.CREATE_BY = #{dto.loginUserId}
-            </if>
             <if test="dto.beginDate != null">
                 and r1.DATE <![CDATA[>=]]> #{dto.beginDate}
             </if>
             <if test="dto.endDate != null">
                 and r1.DATE <![CDATA[<=]]> #{dto.endDate}
+            </if>
+            <if test="dto.createByName != null and dto.createByName != ''">
+                and s1.REAL_NAME like concat('%',#{dto.createByName},'%')
             </if>
             and r1.DELETED = 0
         </where>
