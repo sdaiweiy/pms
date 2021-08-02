@@ -2,6 +2,7 @@ package com.sinodevice.pms.report.daily.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.api.Assert;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sinodevice.pms.common.web.LoginHelper;
 import com.sinodevice.pms.report.daily.dto.ReportDailyDto;
@@ -13,6 +14,7 @@ import com.sinodevice.pms.report.daily.service.IReportDailyDetailsService;
 import com.sinodevice.pms.report.daily.service.IReportDailyService;
 import com.sinodevice.pms.report.daily.vo.ReportDailyPageVo;
 import com.sinodevice.pms.report.daily.vo.ReportDailyVo;
+import com.sinodevice.pms.sys.user.service.IUserPostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,9 +34,14 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
 
     @Autowired
     private IReportDailyDetailsService reportDailyDetailsService;
+    @Autowired
+    private IUserPostService userPostService;
 
     @Override
     public IPage<ReportDailyPageVo> page(IPage<ReportDailyPageVo> page, ReportDailyPageDto dto) {
+        if (!userPostService.existPost(LoginHelper.getAccount().getId(), "BMFZ")) {
+            dto.setCreateBy(LoginHelper.getAccount().getId());
+        }
         return this.baseMapper.page(page, dto);
     }
 
@@ -47,6 +54,10 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
 
     @Override
     public Boolean saveDto(ReportDailyDto dto) {
+        List<ReportDaily> reportDailies = this.list(Wrappers.<ReportDaily>lambdaQuery()
+                .eq(ReportDaily::getDate, dto.getDate())
+                .eq(ReportDaily::getCreateBy, LoginHelper.getAccount().getId()));
+        Assert.fail(reportDailies.size() != 0, "今日日报已存在，请勿重复提交");
         this.save(dto);
         dto.getDetails().forEach(d -> d.setDailyId(dto.getId()));
         reportDailyDetailsService.saveBatch(dto.getDetails());
@@ -63,10 +74,4 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
         return null;
     }
 
-    @Override
-    public List<ReportDaily> has() {
-        return this.list(Wrappers.<ReportDaily>lambdaQuery()
-                .eq(ReportDaily::getDate, LocalDate.now())
-                .eq(ReportDaily::getCreateBy, LoginHelper.getAccount().getId()));
-    }
 }

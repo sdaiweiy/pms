@@ -53,10 +53,4 @@ public interface IReportDailyService extends IService<ReportDaily> {
      */
     Boolean updateDto(ReportDailyDto dto);
 
-    /**
-     * 判断登录用户是否已有日报
-     *
-     * @return
-     */
-    List<ReportDaily> has();
 }

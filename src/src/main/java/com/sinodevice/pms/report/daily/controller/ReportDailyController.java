@@ -70,15 +70,4 @@ public class ReportDailyController extends BaseController<IReportDailyService, R
         return success(baseService.updateDto(dto));
     }
 
-    /**
-     * 判断登录用户是否已有日报
-     *
-     * @return
-     */
-    @GetMapping("/has")
-    public R<List<ReportDaily>> has() {
-        return success(baseService.has());
-    }
-
-
 }

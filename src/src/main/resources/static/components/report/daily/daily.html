@@ -70,10 +70,9 @@
         var index = layui.index
         var common = layui.common
 
-        var lastDate = common.dateFormat.call(new Date((new Date).getTime() - 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
 
-        laydate.render({elem: '#beginDate', type: 'date', value: lastDate});
-        laydate.render({elem: '#endDate', type: 'date', value: lastDate});
+        laydate.render({elem: '#beginDate', type: 'date'});
+        laydate.render({elem: '#endDate', type: 'date'});
 
 
         // 搜索按钮点击事件
@@ -89,10 +88,6 @@
             parseData: config.parseData,
             defaultToolbar: ['filter'],
             page: true,
-            where: {
-                beginDate: lastDate,
-                endDate: lastDate
-            },
             cols: [[
                 {type: 'numbers'},
                 {

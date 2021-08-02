@@ -15,6 +15,9 @@
             <if test="dto.endDate != null">
                 and r1.DATE <![CDATA[<=]]> #{dto.endDate}
             </if>
+            <if test="dto.createBy != null">
+                and r1.CREATE_BY = #{dto.createBy}
+            </if>
             <if test="dto.createByName != null and dto.createByName != ''">
                 and s1.REAL_NAME like concat('%',#{dto.createByName},'%')
             </if>
@@ -24,7 +27,7 @@
         <if test="dto.projectName!=null and dto.projectName!=''">
             HAVING PROJECT_NAME LIKE concat('%',#{dto.projectName},'%')
         </if>
-        ORDER BY r1.CREATE_TIME DESC
+        ORDER BY r1.DATE DESC
     </select>
 
     <select id="getOneById" resultType="com.sinodevice.pms.report.daily.vo.ReportDailyVo">
