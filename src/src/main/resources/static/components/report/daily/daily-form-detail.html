@@ -82,9 +82,12 @@
 
 
         //渲染项目类型
-        $('#daily-form-detail-project').html(item.projectArr.map(p => {
-            return '<option value="' + p.id + '">' + p.name + '</option>'
-        }).join());
+        var projectArrHtml = [];
+        for (var i = 0; i < item.projectArr.length; i++) {
+            var p = item.projectArr[i];
+            projectArrHtml.push('<option value="' + p.id + '">' + p.name + '</option>');
+        }
+        $('#daily-form-detail-project').html(projectArrHtml.join());
 
         if (item.id) {
             form.val('daily-form-detail-form', item);
@@ -100,9 +103,17 @@
         $('.item-time').each(function () {
             $(this).on('keyup blur', function (e) {
                 var totalTime = 0;
-                $('.item-time').each(function (){
-                    totalTime = new BigNumber(totalTime).plus(new BigNumber(this.value))
-                })
+                if (/^(\d+)(\.\d{1})?$/.test($(this).val())) {
+                    $('.item-time').each(function () {
+                        if (/^(\d+)(\.\d{1})?$/.test(this.value)) {
+                            totalTime = new BigNumber(totalTime).plus(new BigNumber(this.value))
+                        } else {
+                            totalTime = 0;
+                            return false;
+                        }
+                    })
+                }
+
                 $('#daily-form-detail-total-time').val(totalTime);
             });
         })

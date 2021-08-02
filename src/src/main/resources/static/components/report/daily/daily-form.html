@@ -13,7 +13,13 @@
                             id="daily-form-save">保存
                     </button>
                 </div>
-                <div id="daily-form-title" class="form-title"></div>
+                <div id="daily-form-title" class="form-title">
+                    <span style="width: 340px;display: inline-block;">
+                        <input id="daily-form-date" name="date" type="text" class="layui-input" lay-verify="required"
+                               style="text-decoration: underline;cursor:pointer;border: none"
+                               readonly/>
+                    </span>
+                </div>
             </div>
             <!--合计信息-->
             <div class="title-split">
@@ -47,18 +53,20 @@
                     </td>
                     <td class="title">其他时长（小时）</td>
                     <td>
-                        <input id="daily-form-total-other-time" name="totalOtherTime" type="text" class="layui-input"/>
+                        <input id="daily-form-total-other-time" name="totalOtherTime" type="text" class="layui-input"
+                               lay-verify="required|time" style="text-decoration: underline;"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="title">总时长（小时）</td>
-                    <td>
+                    <td colspan="3">
                         <input name="totalTime" type="text" class="layui-input" readonly/>
                     </td>
-                    <td class="title">日报日期</td>
-                    <td>
-                        <input id="daily-form-date" name="date" type="text" class="layui-input" lay-verify="required"
-                               readonly/>
+                </tr>
+                <tr>
+                    <td class="title">其他事项说明</td>
+                    <td colspan="3">
+                        <textarea name="description" style="padding: 4px;width: 98%"></textarea>
                     </td>
                 </tr>
                 <tr>
@@ -131,13 +139,10 @@
         laydate.render({
             elem: '#daily-form-date',
             type: 'date',
-            value: common.dateFormat.call(new Date(), 'yyyy-MM-dd'),
-            done: function (value, date, endDate) {
-                if (value.trim() !== '') {
-                    $('#daily-form-title').html(value.replace('-', '年').replace('-', '月') + '日工作日报');
-                }
-            }
+            format: 'yyyy年MM月dd日工作日报',
+            value: common.dateFormat.call(new Date(), 'yyyy年MM月dd日工作日报')
         });
+
 
         //渲染表格
         var tableTemplate;
@@ -148,21 +153,19 @@
                     res.details[i].key = i;
                 }
                 cacheData = res;
-                cacheData.title = res.createTime.substring(0, 10).replace('-', '年').replace('-', '月') + '日工作日报';
+                cacheData.date = cacheData.date.replace('-', '年').replace('-', '月') + '日工作日报';
                 val();
             })
         } else {
             var date = new Date();
-            cacheData.title = common.dateFormat.call(date, 'yyyy年MM月dd日工作日报');
+            cacheData.date = common.dateFormat.call(date, 'yyyy年MM月dd日工作日报');
             cacheData.createByName = crab.getUser().realName;
             val();
         }
 
         //其他修改事件
         $('#daily-form-total-other-time').on('keyup blur', function (e) {
-            var value = common.dailyDateFormat($(this).val());
-            $(this).val(value);
-            cacheData.totalOtherTime = value;
+            cacheData.totalOtherTime = $(this).val();
             renderBaseTime();
         });
 
@@ -189,9 +192,9 @@
                 layer.msg('项目不能为空');
                 return false;
             }
-            cacheData.totalOtherTime = data.field.totalOtherTime;
-            cacheData.date = data.field.date;
-            crab.post('/report/daily' + (cacheData.id ? '/update/dto' : '/save/dto'), JSON.stringify(cacheData), function (res) {
+            data.field.date = data.field.date.substring(0, 10).replace(/[年月]/g, '-');
+            data.field.details = cacheData.details;
+            crab.post('/report/daily' + (data.field.id ? '/update/dto' : '/save/dto'), JSON.stringify(data.field), function (res) {
                 layer.msg('成功', {icon: 1, time: 1500});
                 $('#daily-form-back').click();
             }, true)
@@ -199,8 +202,6 @@
         });
 
         function val() {
-            //渲染表头
-            $('#daily-form-title').html(cacheData.title);
             //渲染基础信息
             form.val('daily-form', cacheData);
             //渲染表格
@@ -223,7 +224,7 @@
                     },
                     {
                         field: 'content', title: '工作内容', width: 300, templet: function (d) {
-                            return '<p>' + d.content.replaceAll('\r', '</p><p>') + '</p>'
+                            return d.content.replace(/\n/g, '<br/>')
                         }
                     },
                     {field: 'requireTime', title: '需求调研', width: 60},
@@ -253,14 +254,20 @@
                     item = getByKey(data.key);
                 }
                 //将已选中的项目类型过滤
-                res = res.filter(r => {
-                    for (var detail of cacheData.details) {
-                        if (detail.projectId == r.id && detail.projectId != data.projectId) {
-                            return false;
+                var newRes = [];
+                for (var i = 0; i < res.length; i++) {
+                    var flag = true;
+                    for (var j = 0; j < cacheData.details.length; j++) {
+                        if (cacheData.details[j].projectId == res[i].id && cacheData.details[j].projectId != data.projectId) {
+                            flag = false;
+                            break;
                         }
                     }
-                    return true;
-                })
+                    if (flag) {
+                        newRes.push(res[i]);
+                    }
+                }
+                res = newRes;
                 item.projectArr = res;
                 crab.putFormData(item);
 
@@ -296,6 +303,12 @@
         }
 
         function renderBaseTime() {
+            var totalOtherTime;
+            if (/^(\d+)(\.\d{1})?$/.test(cacheData.totalOtherTime)) {
+                totalOtherTime = cacheData.totalOtherTime;
+            } else {
+                totalOtherTime = 0
+            }
             cacheData.totalRequireTime = 0;
             cacheData.totalDevTime = 0;
             cacheData.totalTestTime = 0;
@@ -303,14 +316,16 @@
             cacheData.totalTime = 0;
             cacheData.totalOverTime = 0;
 
-            cacheData.details.forEach(d => {
+            for (var i = 0; i < cacheData.details.length; i++) {
+                var d = cacheData.details[i];
                 cacheData.totalRequireTime = new BigNumber(cacheData.totalRequireTime).plus(new BigNumber(d.requireTime));
                 cacheData.totalDevTime = new BigNumber(cacheData.totalDevTime).plus(new BigNumber(d.devTime));
                 cacheData.totalTestTime = new BigNumber(cacheData.totalTestTime).plus(new BigNumber(d.testTime));
                 cacheData.totalOpTime = new BigNumber(cacheData.totalOpTime).plus(new BigNumber(d.opTime));
                 cacheData.totalTime = new BigNumber(cacheData.totalTime).plus(new BigNumber(d.totalTime));
-            });
-            cacheData.totalTime = new BigNumber(cacheData.totalTime).plus(new BigNumber(cacheData.totalOtherTime));
+            }
+
+            cacheData.totalTime = new BigNumber(cacheData.totalTime).plus(new BigNumber(totalOtherTime));
             if (cacheData.totalTime > 7) {
                 cacheData.totalOverTime = new BigNumber(cacheData.totalTime).minus(new BigNumber(7));
             }
@@ -319,9 +334,9 @@
 
 
         function getByKey(key) {
-            for (var detail of cacheData.details) {
-                if (detail.key == key) {
-                    return detail;
+            for (var i = 0; i < cacheData.details.length; i++) {
+                if (cacheData.details[i].key == key) {
+                    return cacheData.details[i];
                 }
             }
         }
@@ -344,6 +359,10 @@
             layui.index.openNewTab({
                 url: 'components/report/daily/daily.html'
             });
+        });
+
+        form.verify({
+            time: [/^(\d+)(\.\d{1})?$/, '时间异常，为一位小数']
         });
 
 

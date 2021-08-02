@@ -11,7 +11,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -65,5 +64,9 @@ public class ReportDaily extends BaseEntity {
     @ApiModelProperty(value = "总加班时长")
     @TableField("TOTAL_OVER_TIME")
     private BigDecimal totalOverTime;
+
+    @ApiModelProperty(value = "其他事项说明")
+    @TableField("DESCRIPTION")
+    private String description;
 
 }
