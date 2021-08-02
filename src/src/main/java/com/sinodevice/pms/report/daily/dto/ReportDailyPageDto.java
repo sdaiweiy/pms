@@ -35,4 +35,9 @@ public class ReportDailyPageDto extends ReportDaily {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
+    /**
+     * 创建人姓名
+     */
+    private String createByName;
+
 }

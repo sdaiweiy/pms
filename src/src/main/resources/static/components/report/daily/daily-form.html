@@ -52,8 +52,13 @@
                 </tr>
                 <tr>
                     <td class="title">总时长（小时）</td>
-                    <td colspan="3">
+                    <td>
                         <input name="totalTime" type="text" class="layui-input" readonly/>
+                    </td>
+                    <td class="title">日报日期</td>
+                    <td>
+                        <input id="daily-form-date" name="date" type="text" class="layui-input" lay-verify="required"
+                               readonly/>
                     </td>
                 </tr>
                 <tr>
@@ -109,6 +114,7 @@
         var index = layui.index;
         var table = layui.table;
         var layer = layui.layer;
+        var laydate = layui.laydate;
         var common = layui.common;
         var data = crab.getFormData();
         var cacheData = {
@@ -122,6 +128,16 @@
             details: []
         };
 
+        laydate.render({
+            elem: '#daily-form-date',
+            type: 'date',
+            value: common.dateFormat.call(new Date(), 'yyyy-MM-dd'),
+            done: function (value, date, endDate) {
+                if (value.trim() !== '') {
+                    $('#daily-form-title').html(value.replace('-', '年').replace('-', '月') + '日工作日报');
+                }
+            }
+        });
 
         //渲染表格
         var tableTemplate;
@@ -136,15 +152,17 @@
                 val();
             })
         } else {
-            var data = new Date();
-            cacheData.title = common.dateFormat.call(data, 'yyyy年MM月dd日工作日报');
+            var date = new Date();
+            cacheData.title = common.dateFormat.call(date, 'yyyy年MM月dd日工作日报');
             cacheData.createByName = crab.getUser().realName;
             val();
         }
 
         //其他修改事件
         $('#daily-form-total-other-time').on('keyup blur', function (e) {
-            cacheData.totalOtherTime = $(this).val();
+            var value = common.dailyDateFormat($(this).val());
+            $(this).val(value);
+            cacheData.totalOtherTime = value;
             renderBaseTime();
         });
 
@@ -171,6 +189,8 @@
                 layer.msg('项目不能为空');
                 return false;
             }
+            cacheData.totalOtherTime = data.field.totalOtherTime;
+            cacheData.date = data.field.date;
             crab.post('/report/daily' + (cacheData.id ? '/update/dto' : '/save/dto'), JSON.stringify(cacheData), function (res) {
                 layer.msg('成功', {icon: 1, time: 1500});
                 $('#daily-form-back').click();

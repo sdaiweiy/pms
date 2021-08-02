@@ -14,4 +14,9 @@ public class ReportDailyPageVo extends ReportDaily {
      * 项目名称
      */
     private String projectName;
+    /**
+     * 创建人姓名
+     */
+    private String createByName;
+
 }

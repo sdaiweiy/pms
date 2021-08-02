@@ -62,21 +62,22 @@ layui.define(['config', 'crab', 'layer'], function (exports) {
             }
             v += '';
             if (v === '') {
-                v = '0.0';
+                v = '0.00';
             } else if (v === '0') {
-                v = '0.0';
+                v = '0.00';
             } else if (v === '0.') {
-                v = '0.0';
+                v = '0.00';
             } else if (/^0+\d+\.?\d*.*$/.test(v)) {
-                debugger
                 v = v.replace(/^0+(\d+\.?\d*).*$/, '$1');
-            }  else if (!/^\d+\.\d{1}$/.test(v)) {
-                if (/^\d+\.\d{1}.+/.test(v)) {
-                    v = v.replace(/^(\d+\.\d{1}).*$/, '$1');
+            } else if (/^0\.\d$/.test(v)) {
+                v = v + '0';
+            } else if (!/^\d+\.\d{2}$/.test(v)) {
+                if (/^\d+\.\d{2}.+/.test(v)) {
+                    v = v.replace(/^(\d+\.\d{2}).*$/, '$1');
                 } else if (/^\d+$/.test(v)) {
-                    v = v + '.0';
+                    v = v + '.00';
                 } else if (/^\d+\.$/.test(v)) {
-                    v = v + '0';
+                    v = v + '00';
                 } else if (/^\d+\.\d$/.test(v)) {
                     v = v + '0';
                 } else if (/^[^\d]+\d+\.?\d*$/.test(v)) {
@@ -86,10 +87,22 @@ layui.define(['config', 'crab', 'layer'], function (exports) {
                 } else if (/^0+\d+\.?\d*$/.test(v)) {
                     v = v.replace(/^0+(\d+\.?\d*)$/, '$1');
                 } else {
-                    v = '0.0';
+                    v = '0.00';
                 }
             }
             return negative ? "-" + v : v;
+        },
+        dailyDateFormat(date) {
+            if (/^(\d+)(\.\d{2})?$/.test(date)) {
+                var c = date.charAt(date.length - 1);
+                return date.substring(0, date.length - 2) + c;
+            } else if (/^(\d+)(\.)?$/.test(date)) {
+                return date + 0;
+            } else if (/^(\d+)(\.\d{1})?$/.test(date)) {
+                return date;
+            } else {
+                return 0;
+            }
         }
 
     };
