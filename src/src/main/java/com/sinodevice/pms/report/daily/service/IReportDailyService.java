@@ -8,8 +8,6 @@ import com.sinodevice.pms.report.daily.entity.ReportDaily;
 import com.sinodevice.pms.report.daily.vo.ReportDailyPageVo;
 import com.sinodevice.pms.report.daily.vo.ReportDailyVo;
 
-import java.util.List;
-
 /**
  * <p>
  * 日报 服务类
@@ -28,6 +26,14 @@ public interface IReportDailyService extends IService<ReportDaily> {
      * @return
      */
     IPage<ReportDailyPageVo> page(IPage<ReportDailyPageVo> page, ReportDailyPageDto dto);
+
+    /**
+     * 统计
+     *
+     * @param dto
+     * @return
+     */
+    ReportDailyPageVo statistics(ReportDailyPageDto dto);
 
     /**
      * 根据id获取数据

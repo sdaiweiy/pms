@@ -88,6 +88,7 @@
             parseData: config.parseData,
             defaultToolbar: ['filter'],
             page: true,
+            totalRow: true,
             cols: [[
                 {type: 'numbers'},
                 {
@@ -97,14 +98,27 @@
                 },
                 {field: 'createByName', title: '人员姓名', width: 100},
                 {field: 'projectName', title: '项目名称', width: 200},
-                {field: 'totalRequireTime', title: '总需求调研时间', width: 150},
-                {field: 'totalDevTime', title: '总协助开发时间', width: 150},
-                {field: 'totalTestTime', title: '总测试上线时间', width: 150},
-                {field: 'totalOpTime', title: '总实施运维时间', width: 150},
-                {field: 'totalOtherTime', title: '总其它时间', width: 150},
-                {field: 'totalTime', title: '总时长', width: 150},
-                {field: 'totalOverTime', title: '总加班时长', width: 150}
-            ]]
+                {field: 'totalRequireTime', title: '总需求调研时间', width: 140},
+                {field: 'totalDevTime', title: '总协助开发时间', width: 140},
+                {field: 'totalTestTime', title: '总测试上线时间', width: 140},
+                {field: 'totalOpTime', title: '总实施运维时间', width: 140},
+                {field: 'totalOtherTime', title: '总其它时间', width: 120},
+                {field: 'totalTime', title: '总时长', width: 90},
+                {field: 'totalOverTime', title: '总加班时长', width: 120},
+                {field: 'createTime', title: '提交时间', width: 160},
+                {field: 'updateTime', title: '更新时间', width: 160}
+            ]],
+            done: function () {
+                var where = crab.getSearchForm();
+                crab.get('/report/daily/statistics', where, function (data) {
+                    if (data) {
+                        var title = ['totalRequireTime', 'totalDevTime', 'totalTestTime', 'totalOpTime', 'totalOtherTime', 'totalTime', 'totalOverTime'];
+                        for (var i = 0; i < title.length; i++) {
+                            $('.layui-table-total').find('[data-field="' + title[i] + '"] .layui-table-cell').html(data[title[i]]);
+                        }
+                    }
+                });
+            }
         })
 
         // 表格顶部操作列

@@ -18,7 +18,7 @@ import com.sinodevice.pms.sys.user.service.IUserPostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -39,10 +39,48 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
 
     @Override
     public IPage<ReportDailyPageVo> page(IPage<ReportDailyPageVo> page, ReportDailyPageDto dto) {
+        beforeDto(dto);
+        return this.baseMapper.page(page, dto);
+    }
+
+    @Override
+    public ReportDailyPageVo statistics(ReportDailyPageDto dto) {
+        beforeDto(dto);
+        BigDecimal totalRequireTime = new BigDecimal("0");
+        BigDecimal totalDevTime = new BigDecimal("0");
+        BigDecimal totalTestTime = new BigDecimal("0");
+        BigDecimal totalOpTime = new BigDecimal("0");
+        BigDecimal totalOtherTime = new BigDecimal("0");
+        BigDecimal totalTime = new BigDecimal("0");
+        BigDecimal totalOverTime = new BigDecimal("0");
+
+        List<ReportDailyPageVo> reportDailyPageVos = this.baseMapper.list(dto);
+        for (ReportDailyPageVo dailyPageVo : reportDailyPageVos) {
+            totalRequireTime = totalRequireTime.add(dailyPageVo.getTotalRequireTime());
+            totalDevTime = totalDevTime.add(dailyPageVo.getTotalDevTime());
+            totalTestTime = totalTestTime.add(dailyPageVo.getTotalTestTime());
+            totalOpTime = totalOpTime.add(dailyPageVo.getTotalOpTime());
+            totalOtherTime = totalOtherTime.add(dailyPageVo.getTotalOtherTime());
+            totalTime = totalTime.add(dailyPageVo.getTotalTime());
+            totalOverTime = totalOverTime.add(dailyPageVo.getTotalOverTime());
+        }
+
+        ReportDailyPageVo reportDailyPageVo = new ReportDailyPageVo();
+        reportDailyPageVo.setTotalRequireTime(totalRequireTime);
+        reportDailyPageVo.setTotalDevTime(totalDevTime);
+        reportDailyPageVo.setTotalTestTime(totalTestTime);
+        reportDailyPageVo.setTotalOpTime(totalOpTime);
+        reportDailyPageVo.setTotalOtherTime(totalOtherTime);
+        reportDailyPageVo.setTotalTime(totalTime);
+        reportDailyPageVo.setTotalOverTime(totalOverTime);
+
+        return reportDailyPageVo;
+    }
+
+    private void beforeDto(ReportDailyPageDto dto) {
         if (!userPostService.existPost(LoginHelper.getAccount().getId(), "BMFZ")) {
             dto.setCreateBy(LoginHelper.getAccount().getId());
         }
-        return this.baseMapper.page(page, dto);
     }
 
     @Override

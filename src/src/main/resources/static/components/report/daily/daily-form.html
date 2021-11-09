@@ -24,6 +24,9 @@
             <!--合计信息-->
             <div class="title-split">
                 合计信息
+                <span style="float: right">
+                    <input lay-filter="holiday" type="checkbox" name="holiday" title="节假日" lay-skin="primary">
+                </span>
             </div>
             <table cellspacing="0" cellpadding="0" width="100%" class="form-table" align="center">
                 <tr>
@@ -194,11 +197,17 @@
             }
             data.field.date = data.field.date.substring(0, 10).replace(/[年月]/g, '-');
             data.field.details = cacheData.details;
+            data.field.holiday = data.field.holiday ? 1 : 0;
             crab.post('/report/daily' + (data.field.id ? '/update/dto' : '/save/dto'), JSON.stringify(data.field), function (res) {
                 layer.msg('成功', {icon: 1, time: 1500});
                 $('#daily-form-back').click();
             }, true)
             return false;
+        });
+
+        //节假日被选中
+        form.on('checkbox(holiday)', function (data) {
+            renderBaseTime();
         });
 
         function val() {
@@ -326,7 +335,13 @@
             }
 
             cacheData.totalTime = new BigNumber(cacheData.totalTime).plus(new BigNumber(totalOtherTime));
-            if (cacheData.totalTime > 7) {
+
+            //是否未节假日
+            var holiday = $('input[name=holiday]:checked')[0] ? 1 : 0;
+            cacheData.holiday = holiday;
+            if (holiday) {
+                cacheData.totalOverTime = cacheData.totalTime;
+            } else if (cacheData.totalTime > 7) {
                 cacheData.totalOverTime = new BigNumber(cacheData.totalTime).minus(new BigNumber(7));
             }
             form.val('daily-form', cacheData);
@@ -364,6 +379,8 @@
         form.verify({
             time: [/^(\d+)(\.\d{1})?$/, '时间异常，为一位小数']
         });
+
+        form.render();
 
 
     })

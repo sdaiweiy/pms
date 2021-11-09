@@ -2,8 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sinodevice.pms.report.daily.mapper.ReportDailyMapper">
 
-    <select id="page" resultType="com.sinodevice.pms.report.daily.vo.ReportDailyPageVo">
-
+    <sql id="baseSql">
         SELECT r1.*,group_concat(p1.`NAME`) as PROJECT_NAME,s1.REAL_NAME AS CREATE_BY_NAME FROM `report_daily` r1
         JOIN report_daily_details r2 ON r2.DAILY_ID = r1.ID
         JOIN project_info p1 ON p1.ID = r2.PROJECT_ID
@@ -28,6 +27,14 @@
             HAVING PROJECT_NAME LIKE concat('%',#{dto.projectName},'%')
         </if>
         ORDER BY r1.DATE DESC
+    </sql>
+
+    <select id="page" resultType="com.sinodevice.pms.report.daily.vo.ReportDailyPageVo">
+        <include refid="baseSql"/>
+    </select>
+
+    <select id="list" resultType="com.sinodevice.pms.report.daily.vo.ReportDailyPageVo">
+        <include refid="baseSql"/>
     </select>
 
     <select id="getOneById" resultType="com.sinodevice.pms.report.daily.vo.ReportDailyVo">
@@ -38,5 +45,6 @@
         WHERE r1.DELETED = 0
           and r1.ID = #{id}
     </select>
+
 
 </mapper>

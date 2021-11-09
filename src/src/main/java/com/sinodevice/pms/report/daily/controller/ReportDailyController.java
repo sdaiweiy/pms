@@ -12,8 +12,6 @@ import com.sinodevice.pms.report.daily.vo.ReportDailyPageVo;
 import com.sinodevice.pms.report.daily.vo.ReportDailyVo;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * <p>
  * 日报 前端控制器
@@ -35,6 +33,17 @@ public class ReportDailyController extends BaseController<IReportDailyService, R
     @GetMapping("/page")
     public R<IPage<ReportDailyPageVo>> page(ReportDailyPageDto dto) {
         return success(baseService.page(getPage(), dto));
+    }
+
+    /**
+     * 统计
+     *
+     * @param dto
+     * @return
+     */
+    @GetMapping("/statistics")
+    public R<ReportDailyPageVo> statistics(ReportDailyPageDto dto) {
+        return success(baseService.statistics(dto));
     }
 
     /**

@@ -65,6 +65,10 @@ public class ReportDaily extends BaseEntity {
     @TableField("TOTAL_OVER_TIME")
     private BigDecimal totalOverTime;
 
+    @ApiModelProperty(value = "是否未节假日 0否 1是")
+    @TableField("HOLIDAY")
+    private Integer holiday;
+
     @ApiModelProperty(value = "其他事项说明")
     @TableField("DESCRIPTION")
     private String description;

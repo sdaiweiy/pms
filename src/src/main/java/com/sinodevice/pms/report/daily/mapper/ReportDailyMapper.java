@@ -9,6 +9,8 @@ import com.sinodevice.pms.report.daily.vo.ReportDailyVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * <p>
  * 日报 Mapper 接口
@@ -28,6 +30,15 @@ public interface ReportDailyMapper extends BaseMapper<ReportDaily> {
      * @return
      */
     IPage<ReportDailyPageVo> page(IPage<ReportDailyPageVo> page, @Param("dto") ReportDailyPageDto dto);
+
+
+    /**
+     * 统计
+     *
+     * @param dto
+     * @return
+     */
+    List<ReportDailyPageVo> list(@Param("dto") ReportDailyPageDto dto);
 
     /**
      * 根据id获取数据
