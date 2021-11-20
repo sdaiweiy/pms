@@ -17,8 +17,11 @@ import com.sinodevice.pms.report.daily.vo.ReportDailyVo;
 import com.sinodevice.pms.sys.user.service.IUserPostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,6 +56,7 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
         BigDecimal totalOtherTime = new BigDecimal("0");
         BigDecimal totalTime = new BigDecimal("0");
         BigDecimal totalOverTime = new BigDecimal("0");
+        BigDecimal totalCancelTime = new BigDecimal("0");
 
         List<ReportDailyPageVo> reportDailyPageVos = this.baseMapper.list(dto);
         for (ReportDailyPageVo dailyPageVo : reportDailyPageVos) {
@@ -63,6 +67,9 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
             totalOtherTime = totalOtherTime.add(dailyPageVo.getTotalOtherTime());
             totalTime = totalTime.add(dailyPageVo.getTotalTime());
             totalOverTime = totalOverTime.add(dailyPageVo.getTotalOverTime());
+            if (null != dailyPageVo.getCancelTime()) {
+                totalCancelTime = totalCancelTime.add(dailyPageVo.getCancelTime());
+            }
         }
 
         ReportDailyPageVo reportDailyPageVo = new ReportDailyPageVo();
@@ -73,7 +80,7 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
         reportDailyPageVo.setTotalOtherTime(totalOtherTime);
         reportDailyPageVo.setTotalTime(totalTime);
         reportDailyPageVo.setTotalOverTime(totalOverTime);
-
+        reportDailyPageVo.setCancelTime(totalCancelTime);
         return reportDailyPageVo;
     }
 
@@ -110,6 +117,22 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
         dto.getDetails().forEach(d -> d.setDailyId(dto.getId()));
         reportDailyDetailsService.saveBatch(dto.getDetails());
         return null;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean cancel(String[] dailyIdList, LocalDate cancelDay) {
+        List<ReportDaily> reportDailyList = new ArrayList<>();
+
+        for (String dailyId : dailyIdList) {
+            ReportDaily reportDaily = new ReportDaily();
+            ReportDaily temp = this.getById(Long.parseLong(dailyId));
+            reportDaily.setId(Long.parseLong(dailyId));
+            reportDaily.setCancelDay(cancelDay);
+            reportDaily.setCancelTime(temp.getTotalOverTime());
+            reportDailyList.add(reportDaily);
+        }
+        return this.updateBatchById(reportDailyList);
     }
 
 }

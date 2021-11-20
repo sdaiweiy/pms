@@ -56,6 +56,9 @@
         <button class="layui-btn layui-btn-sm" lay-event="add">
             <i class="layui-icon">&#xe654;</i>添加
         </button>
+        <button class="layui-btn layui-btn-sm" id="daily-add" lay-event="cancel" data-auth="daily:add">
+            <i class="layui-icon">&#x1005;</i>加班核销
+        </button>
     </div>
 </script>
 
@@ -91,6 +94,7 @@
             totalRow: true,
             cols: [[
                 {type: 'numbers'},
+                {type: 'checkbox', width: 50},
                 {
                     field: 'date', title: '日报时间', event: 'detail', width: 120, templet: function (d) {
                         return '<span class="link">' + d.date + '</span>'
@@ -105,14 +109,19 @@
                 {field: 'totalOtherTime', title: '总其它时间', width: 120},
                 {field: 'totalTime', title: '总时长', width: 90},
                 {field: 'totalOverTime', title: '总加班时长', width: 120},
+                {field: 'cancelTime', title: '总核销时长', width: 120},
+                {field: 'cancelDay', title: '核销日期', width: 140},
                 {field: 'createTime', title: '提交时间', width: 160},
                 {field: 'updateTime', title: '更新时间', width: 160}
             ]],
             done: function () {
+                if (crab.getUser().id != '10001') {
+                    $('#daily-add').remove();
+                }
                 var where = crab.getSearchForm();
                 crab.get('/report/daily/statistics', where, function (data) {
                     if (data) {
-                        var title = ['totalRequireTime', 'totalDevTime', 'totalTestTime', 'totalOpTime', 'totalOtherTime', 'totalTime', 'totalOverTime'];
+                        var title = ['totalRequireTime', 'totalDevTime', 'totalTestTime', 'totalOpTime', 'totalOtherTime', 'totalTime', 'totalOverTime', 'cancelTime'];
                         for (var i = 0; i < title.length; i++) {
                             $('.layui-table-total').find('[data-field="' + title[i] + '"] .layui-table-cell').html(data[title[i]]);
                         }
@@ -125,6 +134,25 @@
         table.on('toolbar(daily-table)', function (obj) {
             if (obj.event === 'add') {
                 openTableAdd({});
+            } else if (obj.event === 'cancel') {
+                var checkList = table.checkStatus('daily-table');
+                if (checkList.data.length == 0) {
+                    layer.alert('请选择需要核销的数据!');
+                    return;
+                }
+                var dailyIds = [];
+                for (var i = 0; i < checkList.data.length; i++) {
+                    dailyIds.push(checkList.data[i].id);
+                }
+                crab.putFormData(dailyIds);
+
+                crab.popupCenter({
+                    title: '加班核销',
+                    path: '/components/report/daily/daily-cancel-form.html',
+                    finish: function () {
+                        tableTemplate.reload();
+                    }
+                });
             }
         })
 

@@ -10,7 +10,10 @@ import com.sinodevice.pms.report.daily.entity.ReportDaily;
 import com.sinodevice.pms.report.daily.service.IReportDailyService;
 import com.sinodevice.pms.report.daily.vo.ReportDailyPageVo;
 import com.sinodevice.pms.report.daily.vo.ReportDailyVo;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 /**
  * <p>
@@ -77,6 +80,18 @@ public class ReportDailyController extends BaseController<IReportDailyService, R
     @PostMapping("/update/dto")
     public R<Boolean> updateDto(@RequestBody ReportDailyDto dto) {
         return success(baseService.updateDto(dto));
+    }
+
+
+    /**
+     * @param
+     * @return
+     * @ 核销加班
+     */
+    @PostMapping("/cancel")
+    public R<Boolean> cancel(String dailyIds, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate cancelDay) {
+        String[] dailyIdList = dailyIds.split(";");
+        return success(baseService.cancel(dailyIdList, cancelDay));
     }
 
 }

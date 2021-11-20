@@ -8,6 +8,8 @@ import com.sinodevice.pms.report.daily.entity.ReportDaily;
 import com.sinodevice.pms.report.daily.vo.ReportDailyPageVo;
 import com.sinodevice.pms.report.daily.vo.ReportDailyVo;
 
+import java.time.LocalDate;
+
 /**
  * <p>
  * 日报 服务类
@@ -59,4 +61,11 @@ public interface IReportDailyService extends IService<ReportDaily> {
      */
     Boolean updateDto(ReportDailyDto dto);
 
+    /***
+     * 核销加班
+     * @param dailyIdList
+     * @param cancelDay
+     * @return
+     */
+    Boolean cancel(String[] dailyIdList, LocalDate cancelDay);
 }
