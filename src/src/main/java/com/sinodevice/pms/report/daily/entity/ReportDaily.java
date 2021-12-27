@@ -83,4 +83,12 @@ public class ReportDaily extends BaseEntity {
     @TableField("CANCEL_TIME")
     private BigDecimal cancelTime;
 
+    @ApiModelProperty(value = "加班地址")
+    @TableField("WORK_EXTRA_ADDRESS")
+    private String workExtraAddress;
+
+    @ApiModelProperty(value = "加班内容")
+    @TableField("WORK_EXTRA_CONTENT")
+    private String workExtraContent;
+
 }

@@ -14,11 +14,23 @@
             <if test="dto.endDate != null">
                 and r1.DATE <![CDATA[<=]]> #{dto.endDate}
             </if>
+            <if test="dto.cancelBeginDate != null">
+                and r1.CANCEL_DAY <![CDATA[>=]]> #{dto.cancelBeginDate}
+            </if>
+            <if test="dto.cancelEndData != null">
+                and r1.CANCEL_DAY <![CDATA[<=]]> #{dto.cancelEndData}
+            </if>
             <if test="dto.createBy != null">
                 and r1.CREATE_BY = #{dto.createBy}
             </if>
+            <if test="dto.workExtra != null">
+                and r1.TOTAL_OVER_TIME != 0
+            </if>
             <if test="dto.createByName != null and dto.createByName != ''">
                 and s1.REAL_NAME like concat('%',#{dto.createByName},'%')
+            </if>
+            <if test="dto.workExtraAddress != null and dto.workExtraAddress != ''">
+                and r1.WORK_EXTRA_ADDRESS like concat('%',#{dto.workExtraAddress},'%')
             </if>
             and r1.DELETED = 0
         </where>

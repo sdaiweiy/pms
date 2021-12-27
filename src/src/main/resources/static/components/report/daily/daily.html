@@ -10,41 +10,61 @@
         <!-- 搜索条件 -->
         <div class="layui-form toolbar">
             <form id="searchForm" onsubmit="return false;" autocomplete="off">
-                <div class="search-form-main">
-                    <div>
-                        <div class="search-form-base">
-                            <div class="search-form-grid">
-                                <div class="search-form-ms-item-1">
-                                    <span class="search-form-span">项目名称：</span>
-                                </div>
-                                <div class="search-form-ms-item-2">
-                                    <input name="projectName" class="layui-input search-input" type="text"
-                                           placeholder="请输入"/>
-                                </div>
-                                <div class="search-form-ms-item-1">
-                                    <span class="search-form-span">日报时间：</span>
-                                </div>
-                                <div class="search-form-ms-item-2">
-                                    <input id="beginDate" name="beginDate" class="layui-input search-input" type="text"
-                                           readonly/>
-                                </div>
-                                <div class="search-form-ms-item-1">
-                                    <span class="search-form-span">~</span>
-                                </div>
-                                <div class="search-form-ms-item-2">
-                                    <input id="endDate" name="endDate" class="layui-input search-input" type="text"
-                                           readonly/>
-                                </div>
-                                <div class="search-form-ms-item-1">
-                                    <span class="search-form-span">创建人</span>
-                                </div>
-                                <div class="search-form-ms-item-2">
-                                    <input name="createByName" class="layui-input search-input" type="text"/>
-                                </div>
+                <div class="search-form-main" style="width: auto;">
+                    <div class="search-form-base">
+                        <div class="search-form-grid">
+                            <div class="search-form-item-1">
+                                <span class="search-form-span">项目名称：</span>
+                            </div>
+                            <div class="search-form-ms-item-2">
+                                <input name="projectName" class="layui-input search-input" type="text"
+                                       placeholder="请输入"/>
+                            </div>
+                            <div class="search-form-item-1">
+                                <span class="search-form-span">日报时间：</span>
+                            </div>
+                            <div class="search-form-ms-item-2">
+                                <input id="beginDate" name="beginDate" class="layui-input search-input" type="text"
+                                       readonly/>
+                            </div>
+                            <div style="width: 2%;">
+                                <span class="search-form-span">~</span>
+                            </div>
+                            <div class="search-form-ms-item-2">
+                                <input id="endDate" name="endDate" class="layui-input search-input" type="text"
+                                       readonly/>
+                            </div>
+                            <div class="search-form-ms-item-1">
+                                <span class="search-form-span">创建人</span>
+                            </div>
+                            <div class="search-form-ms-item-2">
+                                <input name="createByName" class="layui-input search-input" type="text"/>
+                            </div>
+                            <div class="search-form-item-1">
+                                <span class="search-form-span">核销日期：</span>
+                            </div>
+                            <div class="search-form-ms-item-2">
+                                <input id="cancelBeginDate" name="cancelBeginDate" class="layui-input search-input" type="text"
+                                       readonly/>
+                            </div>
+                            <div style="width: 2%;">
+                                <span class="search-form-span">~</span>
+                            </div>
+                            <div class="search-form-ms-item-2">
+                                <input id="cancelEndDate" name="cancelEndDate" class="layui-input search-input" type="text"
+                                       readonly/>
+                            </div>
+                            <div class="search-form-item-1">
+                                <span class="search-form-span">加班地点：</span>
+                            </div>
+                            <div class="search-form-ms-item-2">
+                                <input name="workExtraAddress" class="layui-input search-input" type="text"
+                                       placeholder="请输入"/>
                             </div>
                         </div>
                     </div>
                     <div class="search-form-right">
+                        <input type="checkbox" name="workExtra" value="1" title="是否加班" lay-skin="primary">
                         <button id="daily-btn-search" class="layui-btn icon-btn"><i
                                 class="layui-icon">&#xe615;</i>搜索
                         </button>
@@ -80,10 +100,12 @@
         var index = layui.index
         var common = layui.common
 
-
         laydate.render({elem: '#beginDate', type: 'date'});
         laydate.render({elem: '#endDate', type: 'date'});
+        laydate.render({elem: '#cancelBeginDate', type: 'date'});
+        laydate.render({elem: '#cancelEndDate', type: 'date'});
 
+        form.render();
 
         // 搜索按钮点击事件
         $('#daily-btn-search').click(function () {
@@ -109,15 +131,17 @@
                 },
                 {field: 'createByName', title: '人员姓名', width: 100},
                 {field: 'projectName', title: '项目名称', width: 200},
-                {field: 'totalRequireTime', title: '总需求调研时间', width: 140},
-                {field: 'totalDevTime', title: '总协助开发时间', width: 140},
-                {field: 'totalTestTime', title: '总测试上线时间', width: 140},
-                {field: 'totalOpTime', title: '总实施运维时间', width: 140},
-                {field: 'totalOtherTime', title: '总其它时间', width: 120},
+                {field: 'totalRequireTime', title: '总需求调研时间', width: 140, hide: true},
+                {field: 'totalDevTime', title: '总协助开发时间', width: 140, hide: true},
+                {field: 'totalTestTime', title: '总测试上线时间', width: 140, hide: true},
+                {field: 'totalOpTime', title: '总实施运维时间', width: 140, hide: true},
+                {field: 'totalOtherTime', title: '总其它时间', width: 120, hide: true},
                 {field: 'totalTime', title: '总时长', width: 90},
                 {field: 'totalOverTime', title: '总加班时长', width: 120},
                 {field: 'cancelTime', title: '总核销时长', width: 120},
                 {field: 'cancelDay', title: '核销日期', width: 140},
+                {field: 'workExtraAddress', title: '加班地址', width: 200},
+                {field: 'workExtraContent', title: '加班内容', width: 300},
                 {field: 'createTime', title: '提交时间', width: 160},
                 {field: 'updateTime', title: '更新时间', width: 160}
             ]],
