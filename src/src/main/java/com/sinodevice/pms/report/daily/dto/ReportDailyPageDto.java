@@ -46,9 +46,12 @@ public class ReportDailyPageDto extends ReportDaily {
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate cancelEndData;
+    private LocalDate cancelEndDate;
 
     //是否加班
     private Integer workExtra;
+
+    //是否核销
+    private Integer cancel;
 
 }

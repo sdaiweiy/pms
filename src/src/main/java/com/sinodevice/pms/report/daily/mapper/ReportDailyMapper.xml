@@ -3,9 +3,23 @@
 <mapper namespace="com.sinodevice.pms.report.daily.mapper.ReportDailyMapper">
 
     <sql id="baseSql">
-        SELECT r1.*,group_concat(p1.`NAME`) as PROJECT_NAME,s1.REAL_NAME AS CREATE_BY_NAME FROM `report_daily` r1
-        JOIN report_daily_details r2 ON r2.DAILY_ID = r1.ID
-        JOIN project_info p1 ON p1.ID = r2.PROJECT_ID
+        SELECT R1.ID,R1.DATE,R1.TOTAL_OTHER_TIME,R1.TOTAL_OVER_TIME,R1.CANCEL_TIME,R1.CANCEL_DAY,R1.TOTAL_TIME AS DAY_TOTAL_TIME,
+        R1.WORK_EXTRA_ADDRESS,R1.WORK_EXTRA_CONTENT,R2.*,s1.REAL_NAME AS CREATE_BY_NAME,
+        R1.CREATE_TIME,R1.UPDATE_TIME
+        FROM report_daily R1 JOIN (
+            SELECT R2.DAILY_ID,
+                group_concat( p1.`NAME` ) AS PROJECT_NAME,
+                SUM( r2.REQUIRE_TIME ) AS TOTAL_REQUIRE_TIME,
+                SUM(r2.DEV_TIME) AS TOTAL_DEV_TIME,
+                SUM(r2.TEST_TIME) AS TOTAL_TEST_TIME,
+                SUM(r2.OP_TIME) AS TOTAL_OP_TIME,
+                SUM(r2.TOTAL_TIME) AS TOTAL_TIME
+                FROM report_daily_details R2 JOIN project_info P1 ON p1.ID = r2.PROJECT_ID
+                <if test="dto.projectName!=null and dto.projectName!=''">
+                    and p1.name LIKE concat('%',#{dto.projectName},'%')
+                </if>
+            GROUP BY R2.DAILY_ID
+        ) R2 ON r2.DAILY_ID = r1.ID and r1.DELETED = 0
         JOIN sys_user s1 ON s1.ID = r1.CREATE_BY
         <where>
             <if test="dto.beginDate != null">
@@ -17,8 +31,8 @@
             <if test="dto.cancelBeginDate != null">
                 and r1.CANCEL_DAY <![CDATA[>=]]> #{dto.cancelBeginDate}
             </if>
-            <if test="dto.cancelEndData != null">
-                and r1.CANCEL_DAY <![CDATA[<=]]> #{dto.cancelEndData}
+            <if test="dto.cancelEndDate != null">
+                and r1.CANCEL_DAY <![CDATA[<=]]> #{dto.cancelEndDate}
             </if>
             <if test="dto.createBy != null">
                 and r1.CREATE_BY = #{dto.createBy}
@@ -26,18 +40,16 @@
             <if test="dto.workExtra != null">
                 and r1.TOTAL_OVER_TIME != 0
             </if>
+            <if test="dto.cancel != null">
+                and r1.CANCEL_DAY is null
+            </if>
             <if test="dto.createByName != null and dto.createByName != ''">
                 and s1.REAL_NAME like concat('%',#{dto.createByName},'%')
             </if>
             <if test="dto.workExtraAddress != null and dto.workExtraAddress != ''">
                 and r1.WORK_EXTRA_ADDRESS like concat('%',#{dto.workExtraAddress},'%')
             </if>
-            and r1.DELETED = 0
         </where>
-        GROUP BY r1.ID
-        <if test="dto.projectName!=null and dto.projectName!=''">
-            HAVING PROJECT_NAME LIKE concat('%',#{dto.projectName},'%')
-        </if>
         ORDER BY r1.DATE DESC
     </sql>
 

@@ -157,7 +157,7 @@
             elem: '#daily-form-date',
             type: 'date',
             format: 'yyyy年MM月dd日工作日报',
-            min: now,
+            min: crab.getUser().id == 10001 ? '1970-01-01' : now,
             value: common.dateFormat.call(new Date(), 'yyyy年MM月dd日工作日报')
         });
 
@@ -166,7 +166,7 @@
         var tableTemplate;
 
         if (data.id) {
-            if (IDate.parse(data.date, "yyyy-MM-dd").getMonth() != new Date().getMonth()) {
+            if (IDate.parse(data.date, "yyyy-MM-dd").getMonth() != new Date().getMonth() && crab.getUser().id != '10001') {
                 $('#daily-form-save').remove();
             }
             crab.get('/report/daily/getOneById', {id: data.id}, function (res) {

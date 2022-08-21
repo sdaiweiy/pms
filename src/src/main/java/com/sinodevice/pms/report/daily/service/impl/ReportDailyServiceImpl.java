@@ -57,6 +57,7 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
         BigDecimal totalTime = new BigDecimal("0");
         BigDecimal totalOverTime = new BigDecimal("0");
         BigDecimal totalCancelTime = new BigDecimal("0");
+        BigDecimal totalDayTime = new BigDecimal("0");
 
         List<ReportDailyPageVo> reportDailyPageVos = this.baseMapper.list(dto);
         for (ReportDailyPageVo dailyPageVo : reportDailyPageVos) {
@@ -66,6 +67,7 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
             totalOpTime = totalOpTime.add(dailyPageVo.getTotalOpTime());
             totalOtherTime = totalOtherTime.add(dailyPageVo.getTotalOtherTime());
             totalTime = totalTime.add(dailyPageVo.getTotalTime());
+            totalDayTime = totalDayTime.add(dailyPageVo.getDayTotalTime());
             totalOverTime = totalOverTime.add(dailyPageVo.getTotalOverTime());
             if (null != dailyPageVo.getCancelTime()) {
                 totalCancelTime = totalCancelTime.add(dailyPageVo.getCancelTime());
@@ -79,6 +81,7 @@ public class ReportDailyServiceImpl extends ServiceImpl<ReportDailyMapper, Repor
         reportDailyPageVo.setTotalOpTime(totalOpTime);
         reportDailyPageVo.setTotalOtherTime(totalOtherTime);
         reportDailyPageVo.setTotalTime(totalTime);
+        reportDailyPageVo.setDayTotalTime(totalDayTime);
         reportDailyPageVo.setTotalOverTime(totalOverTime);
         reportDailyPageVo.setCancelTime(totalCancelTime);
         return reportDailyPageVo;

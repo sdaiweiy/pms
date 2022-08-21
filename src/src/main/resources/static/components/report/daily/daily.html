@@ -65,8 +65,9 @@
                     </div>
                     <div class="search-form-right">
                         <input type="checkbox" name="workExtra" value="1" title="是否加班" lay-skin="primary">
-                        <button id="daily-btn-search" class="layui-btn icon-btn"><i
-                                class="layui-icon">&#xe615;</i>搜索
+                        <input type="checkbox" name="cancel" value="1" title="未核销" lay-skin="primary">
+                        <button id="daily-btn-search" class="layui-btn icon-btn">
+                            <i class="layui-icon">&#xe615;</i>搜索
                         </button>
                     </div>
                 </div>
@@ -136,7 +137,8 @@
                 {field: 'totalTestTime', title: '总测试上线时间', width: 140, hide: true},
                 {field: 'totalOpTime', title: '总实施运维时间', width: 140, hide: true},
                 {field: 'totalOtherTime', title: '总其它时间', width: 120, hide: true},
-                {field: 'totalTime', title: '总时长', width: 90},
+                {field: 'dayTotalTime', title: '本日时长', width: 90},
+                {field: 'totalTime', title: '项目时长', width: 90},
                 {field: 'totalOverTime', title: '总加班时长', width: 120},
                 {field: 'cancelTime', title: '总核销时长', width: 120},
                 {field: 'cancelDay', title: '核销日期', width: 140},
@@ -152,7 +154,7 @@
                 var where = crab.getSearchForm();
                 crab.get('/report/daily/statistics', where, function (data) {
                     if (data) {
-                        var title = ['totalRequireTime', 'totalDevTime', 'totalTestTime', 'totalOpTime', 'totalOtherTime', 'totalTime', 'totalOverTime', 'cancelTime'];
+                        var title = ['totalRequireTime', 'totalDevTime', 'totalTestTime', 'totalOpTime', 'totalOtherTime','dayTotalTime', 'totalTime', 'totalOverTime', 'cancelTime'];
                         for (var i = 0; i < title.length; i++) {
                             $('.layui-table-total').find('[data-field="' + title[i] + '"] .layui-table-cell').html(data[title[i]]);
                         }
