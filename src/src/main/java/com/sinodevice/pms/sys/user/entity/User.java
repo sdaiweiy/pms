@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.math.BigDecimal;
+
 /**
  * <p>
  * 系统用户表
@@ -66,4 +68,6 @@ public class User extends BaseEntity {
     @TableField(exist=false)
     private String showPosts;
 
+    @ApiModelProperty(value = "每日工作时长")
+    private BigDecimal workTime;
 }

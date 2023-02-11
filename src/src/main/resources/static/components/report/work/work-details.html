@@ -134,19 +134,5 @@
             $('.summary-time').html(html);
         }
 
-        $(document).on('click', '.link', function () {
-            var taskId = $(this).data('id');
-
-            crab.get('/project/task/page', {limit: 1, page: 1, id: taskId}, function (data) {
-                data = data.records[0];
-                data.details = true;
-                crab.putFormData(data);
-                crab.popupCenter({
-                    title: '查看任务信息',
-                    path: '/components/project/task/project-task-form.html',
-                    area: '700px'
-                });
-            })
-        });
     });
 </script>

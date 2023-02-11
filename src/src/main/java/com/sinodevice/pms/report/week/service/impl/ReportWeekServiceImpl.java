@@ -77,31 +77,41 @@ public class ReportWeekServiceImpl extends ServiceImpl<ReportWeekMapper, ReportW
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean saveDto(ReportWeekDto reportWeekDto) {
-        LocalDate today = LocalDate.now();
-        Param startWeekParam = paramService.getByCode("start.week");
-        BigDecimal workHour = BigDecimal.ZERO;
+        if (reportWeekDto.getId() != null) {
+            return this.update(Wrappers.<ReportWeek>lambdaUpdate()
+                    .set(ReportWeek::getPlan, reportWeekDto.getPlan())
+                    .set(ReportWeek::getRemark, reportWeekDto.getRemark())
+                    .set(ReportWeek::getResolve, reportWeekDto.getResolve())
+                    .eq(ReportWeek::getId, reportWeekDto.getId()));
+        } else {
+            LocalDate today = LocalDate.now();
+            Param startWeekParam = paramService.getByCode("start.week");
+            BigDecimal workHour = BigDecimal.ZERO;
 
-        //获取当前是第几周
-        int realWeekOfYear = today.get(WeekFields.of(DayOfWeek.MONDAY, 1).weekOfYear());
-        reportWeekDto.setWeekIndex(realWeekOfYear - Integer.parseInt(startWeekParam.getContent()));
-        reportWeekDto.setUserId(LoginHelper.getAccount().getId());
+            //获取当前是第几周
+            int realWeekOfYear = today.get(WeekFields.of(DayOfWeek.MONDAY, 1).weekOfYear());
+            reportWeekDto.setWeekIndex(realWeekOfYear - Integer.parseInt(startWeekParam.getContent()));
+            reportWeekDto.setUserId(LoginHelper.getAccount().getId());
 
-        reportWeekDto.setBeginDate(today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)));
-        reportWeekDto.setEndDate(today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)));
+            reportWeekDto.setBeginDate(today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)));
+            reportWeekDto.setEndDate(today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)));
 
-        int count = this.count(Wrappers.<ReportWeek>lambdaQuery().eq(ReportWeek::getWeekIndex, reportWeekDto.getWeekIndex()).eq(ReportWeek::getUserId, reportWeekDto.getUserId()));
+            int count = this.count(Wrappers.<ReportWeek>lambdaQuery().eq(ReportWeek::getWeekIndex, reportWeekDto.getWeekIndex())
+                    .eq(ReportWeek::getBeginDate, LocalDate.now())
+                    .eq(ReportWeek::getUserId, reportWeekDto.getUserId()));
 
-        Assert.fail(count > 0, "已存在第" + reportWeekDto.getWeekIndex() + "工作周报,请勿重复提交!");
+            Assert.fail(count > 0, "已存在第" + reportWeekDto.getWeekIndex() + "工作周报,请勿重复提交!");
 
-        Boolean result = super.save(reportWeekDto);
-        for (ReportWeekDetails reportWeekDetails : reportWeekDto.getReportWeekDetailsList()) {
-            reportWeekDetails.setReportId(reportWeekDto.getId());
-            workHour = BigDecimalUtils.add(workHour, reportWeekDetails.getWorkHour());
+            Boolean result = super.save(reportWeekDto);
+            for (ReportWeekDetails reportWeekDetails : reportWeekDto.getReportWeekDetailsList()) {
+                reportWeekDetails.setReportId(reportWeekDto.getId());
+                workHour = BigDecimalUtils.add(workHour, reportWeekDetails.getWorkHour());
+            }
+
+            this.update(Wrappers.<ReportWeek>lambdaUpdate().set(ReportWeek::getWorkHour, workHour).eq(ReportWeek::getId, reportWeekDto.getId()));
+            reportWeekDetailsService.saveBatch(reportWeekDto.getReportWeekDetailsList());
+            return result;
         }
-
-        this.update(Wrappers.<ReportWeek>lambdaUpdate().set(ReportWeek::getWorkHour, workHour).eq(ReportWeek::getId, reportWeekDto.getId()));
-        reportWeekDetailsService.saveBatch(reportWeekDto.getReportWeekDetailsList());
-        return result;
     }
 
 }

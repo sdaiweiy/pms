@@ -32,8 +32,8 @@ public class ReportWeekDetailsController extends BaseController<IReportWeekDetai
     }
 
     @GetMapping("/list")
-    public R<List<ReportWeekDetailsVo>> list(Long weekIndex) {
-        return success(baseService.list(weekIndex));
+    public R<List<ReportWeekDetailsVo>> list(Long weekIndex, Long year) {
+        return success(baseService.list(weekIndex, year));
     }
 
 }

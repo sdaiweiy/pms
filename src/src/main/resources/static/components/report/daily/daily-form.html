@@ -357,10 +357,11 @@
             //是否未节假日
             var holiday = $('input[name=holiday]:checked')[0] ? 1 : 0;
             cacheData.holiday = holiday;
+            var workTime = crab.getUser().workTime ? crab.getUser().workTime : 7;
             if (holiday) {
                 cacheData.totalOverTime = cacheData.totalTime;
-            } else if (cacheData.totalTime > 7) {
-                cacheData.totalOverTime = new BigNumber(cacheData.totalTime).minus(new BigNumber(7));
+            } else if (cacheData.totalTime > workTime) {
+                cacheData.totalOverTime = new BigNumber(cacheData.totalTime).minus(new BigNumber(workTime));
             }
             form.val('daily-form', cacheData);
         }

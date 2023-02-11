@@ -25,7 +25,9 @@ public class ReportWeekController extends BaseController<IReportWeekService, Rep
 
     @GetMapping("/page")
     public R<IPage<ReportWeek>> page(ReportWeek reportWeek) {
-        reportWeek.setUserId(LoginHelper.getAccount().getId());
+        if (LoginHelper.getAccount().getId() != 10001) {
+            reportWeek.setUserId(LoginHelper.getAccount().getId());
+        }
         return success(baseService.page(getPage(), reportWeek));
     }
 
