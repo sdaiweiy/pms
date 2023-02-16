@@ -47,8 +47,8 @@ public class ReportWeekServiceImpl extends ServiceImpl<ReportWeekMapper, ReportW
     private IUserPostService userPostService;
 
     @Override
-    public IPage<ReportWeek> page(IPage<ReportWeek> page, ReportWeek reportWeek) {
-        return page.setRecords(this.baseMapper.page(page, reportWeek));
+    public IPage<ReportWeek> page(IPage<ReportWeek> page, ReportWeek reportWeek, Integer year) {
+        return page.setRecords(this.baseMapper.page(page, reportWeek, year));
     }
 
     @Override

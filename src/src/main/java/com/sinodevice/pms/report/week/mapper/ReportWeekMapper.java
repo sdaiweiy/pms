@@ -19,7 +19,7 @@ import java.util.List;
 @Mapper
 public interface ReportWeekMapper extends BaseMapper<ReportWeek> {
 
-    List<ReportWeek> page(IPage<ReportWeek> page, @Param(value = "reportWeek") ReportWeek reportWeek);
+    List<ReportWeek> page(IPage<ReportWeek> page, @Param(value = "reportWeek") ReportWeek reportWeek, @Param(value = "year") Integer year);
 
     List<ReportWeek> pageTotal(IPage<ReportWeek> page, @Param(value = "reportWeek") ReportWeek reportWeek);
 

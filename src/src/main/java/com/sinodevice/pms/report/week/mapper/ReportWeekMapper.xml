@@ -18,6 +18,9 @@
         <if test="reportWeek.endDate != null">
             AND R1.END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
         </if>
+        <if test="year != null">
+            AND SUBSTR(R1.BEGIN_DATE FROM 1 FOR 4) = #{year}
+        </if>
         ORDER BY SUBSTR(BEGIN_DATE FROM 1 FOR 4) DESC, R1.WEEK_INDEX DESC,S1.REAL_NAME ASC
     </select>
 

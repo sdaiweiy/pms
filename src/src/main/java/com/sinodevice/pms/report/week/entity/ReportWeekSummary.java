@@ -51,6 +51,10 @@ public class ReportWeekSummary extends SuperEntity {
     @TableField("CONTENT")
     private String content;
 
+    @ApiModelProperty(value = "待解决问题")
+    @TableField("RESOLVE")
+    private String resolve;
+
     @ApiModelProperty(value = "下周计划")
     @TableField("PLAN")
     private String plan;

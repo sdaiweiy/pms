@@ -10,9 +10,11 @@
         <h1 class="summary-title text-center" id="summary-title"></h1>
         <h2 class="summary-title">1.部门工作总结</h2>
         <div class="summary-content">
-            <h4 class="summary-title" style="color: red;">工作总结:</h4>
+            <h4 class="summary-title" style="color: red;">本周重点工作完成情况:</h4>
             <div id="department-content" style="padding-left:20px;color: #000;"></div>
-            <h4 class="summary-title" style="color: red;">工作计划:</h4>
+            <h4 class="summary-title" style="color: red;">需要协调/解决的问题:</h4>
+            <div id="department-resolve" style="padding-left:20px;color: #000;"></div>
+            <h4 class="summary-title" style="color: red;">下周推进计划:</h4>
             <div id="department-plan" style="padding-left:20px;color: #000;"></div>
         </div>
 
@@ -150,9 +152,15 @@
         }, function (data) {
             $('#department-content').html(data.content);
             $('#department-plan').html(data.plan);
+            $('#department-resolve').html(data.resolve);
         });
 
-        crab.get('/report/week/list', {limit: 99, page: 1, weekIndex: weekIndex}, function (data) {
+        crab.get('/report/week/list', {
+            limit: 99,
+            page: 1,
+            weekIndex: weekIndex,
+            year: weekInfo.beginDate.substring(0, 4)
+        }, function (data) {
             data = data.records;
             var summaryHtml = '', planHtml = '', resolveHtml = '';
             for (var i = 0; i < data.length; i++) {

@@ -182,7 +182,7 @@
                 }
             }*/
             var postData = {
-                id: weekReport.id,
+                id: weekReport ? weekReport.id : null,
                 remark: data.field.remark,
                 plan: data.field.plan,
                 resolve: data.field.resolve,

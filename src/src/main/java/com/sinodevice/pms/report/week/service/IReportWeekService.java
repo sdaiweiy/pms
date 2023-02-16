@@ -15,7 +15,7 @@ import com.sinodevice.pms.report.week.entity.ReportWeek;
  */
 public interface IReportWeekService extends IService<ReportWeek> {
 
-    IPage<ReportWeek> page(IPage<ReportWeek> page, ReportWeek reportWeek);
+    IPage<ReportWeek> page(IPage<ReportWeek> page, ReportWeek reportWeek, Integer year);
 
     IPage<ReportWeek> pageTotal(IPage<ReportWeek> page, ReportWeek reportWeek);
 
