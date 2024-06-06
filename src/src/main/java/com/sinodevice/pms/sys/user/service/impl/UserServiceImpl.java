@@ -168,6 +168,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         tempUser.setId(user.getId());
         tempUser.setRealName(user.getRealName());
         tempUser.setUsername(user.getUsername());
+        tempUser.setWorkTime(user.getWorkTime());
         List<UserRoleSelectedVO> roleList = userRoleService.listSelectedVO(user.getId());
         if (roleList != null && roleList.size() > 0) {
             for (UserRoleSelectedVO userRoleSelectedVO : roleList) {

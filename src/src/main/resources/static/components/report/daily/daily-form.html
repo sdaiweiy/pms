@@ -67,6 +67,18 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="title">加班地址</td>
+                    <td colspan="3">
+                        <input name="workExtraAddress" type="text" class="layui-input"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="title">加班内容</td>
+                    <td colspan="3">
+                        <textarea name="workExtraContent" style="padding: 4px;width: 98%"></textarea>
+                    </td>
+                </tr>
+                <tr>
                     <td class="title">其他事项说明</td>
                     <td colspan="3">
                         <textarea name="description" style="padding: 4px;width: 98%"></textarea>
@@ -139,10 +151,13 @@
             details: []
         };
 
-        laydate.render({
+        var now = new Date();
+        now = now.setDate(1)
+        var dailyDate = laydate.render({
             elem: '#daily-form-date',
             type: 'date',
             format: 'yyyy年MM月dd日工作日报',
+            min: crab.getUser().id == 10001 ? '1970-01-01' : now,
             value: common.dateFormat.call(new Date(), 'yyyy年MM月dd日工作日报')
         });
 
@@ -151,6 +166,9 @@
         var tableTemplate;
 
         if (data.id) {
+            if (IDate.parse(data.date, "yyyy-MM-dd").getMonth() != new Date().getMonth() && crab.getUser().id != '10001') {
+                $('#daily-form-save').remove();
+            }
             crab.get('/report/daily/getOneById', {id: data.id}, function (res) {
                 for (var i = 0; i < res.details.length; i++) {
                     res.details[i].key = i;
@@ -339,10 +357,11 @@
             //是否未节假日
             var holiday = $('input[name=holiday]:checked')[0] ? 1 : 0;
             cacheData.holiday = holiday;
+            var workTime = crab.getUser().workTime ? crab.getUser().workTime : 7;
             if (holiday) {
                 cacheData.totalOverTime = cacheData.totalTime;
-            } else if (cacheData.totalTime > 7) {
-                cacheData.totalOverTime = new BigNumber(cacheData.totalTime).minus(new BigNumber(7));
+            } else if (cacheData.totalTime > workTime) {
+                cacheData.totalOverTime = new BigNumber(cacheData.totalTime).minus(new BigNumber(workTime));
             }
             form.val('daily-form', cacheData);
         }

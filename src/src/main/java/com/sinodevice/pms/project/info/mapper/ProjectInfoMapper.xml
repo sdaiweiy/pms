@@ -23,12 +23,12 @@
     </select>
 
     <select id="listByUserId" resultType="com.sinodevice.pms.project.info.entity.ProjectInfo">
-        SELECT * FROM project_info WHERE RESPONSER = #{userId} OR ID IN (
+        SELECT * FROM project_info WHERE DELETED = 0 AND (RESPONSER = #{userId} OR ID IN (
         SELECT DISTINCT PROJECT_ID FROM project_info_user WHERE USER_ID = #{userId}
         <if test="type != null">
             AND TYPE = #{type}
         </if>
-        )
+        ))
     </select>
 
     <select id="listProjectStatus" resultType="com.sinodevice.pms.project.info.vo.ProjectStatusVo">

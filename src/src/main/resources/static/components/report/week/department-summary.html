@@ -105,9 +105,10 @@
             crab.putFormData(data);
             crab.popupCenter({
                 title: view ? "查看部门总结明细" : data.id ? '修改部门总结明细' : '添加部门总结明细',
-                area: ["1000px", "700px"],
+                area: ["1000px", "840px"],
                 path: '/components/report/week/department-summary-form.html',
                 cancelCallback: function () {
+                    tinyMCE.editors[2].destroy();
                     tinyMCE.editors[1].destroy();
                     tinyMCE.editors[0].destroy();
                 },

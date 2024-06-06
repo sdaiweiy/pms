@@ -16,7 +16,8 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">结束日期</label>
                 <div class="layui-input-block">
-                    <input name="endDate" id="weekSummaryFormEndDate" placeholder="结束日期" type="text" class="layui-input"
+                    <input name="endDate" id="weekSummaryFormEndDate" placeholder="结束日期" type="text"
+                           class="layui-input"
                            minlength="2" readonly
                            maxlength="20" lay-verify="required" required/>
                 </div>
@@ -25,14 +26,21 @@
     </div>
 
     <div class="layui-form-item">
-        <label class="layui-form-label required">工作总结</label>
+        <label class="layui-form-label required">本周重点工作完成情况</label>
         <div class="layui-input-block">
             <textarea name="content" id="content-form"></textarea>
         </div>
     </div>
 
     <div class="layui-form-item">
-        <label class="layui-form-label required">工作计划</label>
+        <label class="layui-form-label required">需要协调/解决的问题</label>
+        <div class="layui-input-block">
+            <textarea name="resolve" id="resolve-form"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">下周推进计划</label>
         <div class="layui-input-block">
             <textarea name="plan" id="plan-form"></textarea>
         </div>
@@ -60,7 +68,7 @@
             menubar: false,
             toolbar: 'undo redo | forecolor backcolor | styleselect fontselect fontsizeselect | link bullist numlist table | removeformat',
             width: 850,
-            height: 250,
+            height: 200,
             content_style: "p {margin: 0px; border:0px ; padding: 0px}",
             statusbar: false
         };
@@ -75,11 +83,21 @@
             }
         });
 
-        tinymce.render($.extend({}, {elem: "#plan-form"}, editorOptions), function (opt) {
-            if (weekSummary.id) {
-                tinyMCE.editors[1].setContent(weekSummary.plan);
-            }
-        });
+        setTimeout(function () {
+            tinymce.render($.extend({}, {elem: "#resolve-form"}, editorOptions), function (opt) {
+                if (weekSummary.id) {
+                    tinyMCE.editors[1].setContent(weekSummary.resolve);
+                }
+            });
+        }, 200);
+
+        setTimeout(function () {
+            tinymce.render($.extend({}, {elem: "#plan-form"}, editorOptions), function (opt) {
+                if (weekSummary.id) {
+                    tinyMCE.editors[2].setContent(weekSummary.plan);
+                }
+            });
+        }, 500);
 
         if (weekSummary.id) {
             if (weekSummary.view) {
@@ -109,16 +127,18 @@
         // 表单提交事件
         form.on('submit(week-summary-form-submit)', function (data) {
             var content = tinyMCE.editors[0].getContent();
-            var plan = tinyMCE.editors[1].getContent();
-            if (content.trim() == '') {
-                layer.msg("工作总结不能为空");
-                return false;
-            }
-            if (plan.trim() == '') {
-                layer.msg("工作计划不能为空");
-                return false;
-            }
+            var resolve = tinyMCE.editors[1].getContent();
+            var plan = tinyMCE.editors[2].getContent();
+            /* if (content.trim() == '') {
+                 layer.msg("工作总结不能为空");
+                 return false;
+             }
+             if (plan.trim() == '') {
+                 layer.msg("工作计划不能为空");
+                 return false;
+             }*/
             data.field.content = content;
+            data.field.resolve = resolve;
             data.field.plan = plan;
             data.field.title = data.field.beginDate + " ~ " + data.field.endDate + " 工作周报";
             crab.request('/report/week/summary', data.field, function () {
@@ -134,6 +154,7 @@
         });
 
         function destroyEditor() {
+            tinyMCE.editors[2].destroy();
             tinyMCE.editors[1].destroy();
             tinyMCE.editors[0].destroy();
         }

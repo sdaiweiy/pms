@@ -21,7 +21,7 @@ import java.util.List;
 @Mapper
 public interface ReportWeekDetailsMapper extends BaseMapper<ReportWeekDetails> {
 
-    List<ReportWeekDetailsVo> list(@Param(value = "weekIndex") Long weekIndex);
+    List<ReportWeekDetailsVo> list(@Param(value = "weekIndex") Long weekIndex, @Param(value = "year") Long year);
 
     List<ReportWorkDetailsVo> listWorkDetails(@Param(value = "beginTime") LocalDateTime beginTime, @Param(value = "endTime") LocalDateTime endTime);
 

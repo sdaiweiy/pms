@@ -25,13 +25,15 @@ public class ReportWeekController extends BaseController<IReportWeekService, Rep
 
     @GetMapping("/page")
     public R<IPage<ReportWeek>> page(ReportWeek reportWeek) {
-        reportWeek.setUserId(LoginHelper.getAccount().getId());
-        return success(baseService.page(getPage(), reportWeek));
+        if (LoginHelper.getAccount().getId() != 10001) {
+            reportWeek.setUserId(LoginHelper.getAccount().getId());
+        }
+        return success(baseService.page(getPage(), reportWeek, null));
     }
 
     @GetMapping("/list")
-    public R<IPage<ReportWeek>> list(ReportWeek reportWeek) {
-        return success(baseService.page(getPage(), reportWeek));
+    public R<IPage<ReportWeek>> list(ReportWeek reportWeek, Integer year) {
+        return success(baseService.page(getPage(), reportWeek, year));
     }
 
     @GetMapping("/pageTotal")

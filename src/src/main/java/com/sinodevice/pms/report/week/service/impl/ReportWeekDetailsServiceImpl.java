@@ -21,8 +21,8 @@ import java.util.List;
 public class ReportWeekDetailsServiceImpl extends ServiceImpl<ReportWeekDetailsMapper, ReportWeekDetails> implements IReportWeekDetailsService {
 
     @Override
-    public List<ReportWeekDetailsVo> list(Long weekIndex) {
-        return this.baseMapper.list(weekIndex);
+    public List<ReportWeekDetailsVo> list(Long weekIndex, Long year) {
+        return this.baseMapper.list(weekIndex, year);
     }
 
 }

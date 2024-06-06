@@ -73,4 +73,22 @@ public class ReportDaily extends BaseEntity {
     @TableField("DESCRIPTION")
     private String description;
 
+    @ApiModelProperty(value = "核销时间")
+    @TableField("CANCEL_DAY")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate cancelDay;
+
+    @ApiModelProperty(value = "总核销时长")
+    @TableField("CANCEL_TIME")
+    private BigDecimal cancelTime;
+
+    @ApiModelProperty(value = "加班地址")
+    @TableField("WORK_EXTRA_ADDRESS")
+    private String workExtraAddress;
+
+    @ApiModelProperty(value = "加班内容")
+    @TableField("WORK_EXTRA_CONTENT")
+    private String workExtraContent;
+
 }

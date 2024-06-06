@@ -13,6 +13,7 @@
         `x`.`phone` AS `phone`,
         `x`.`email` AS `email`,
         `x`.`status` AS `status`,
+        `x`.`WORK_TIME` AS `workTime`,
         `c`.`showRoles` AS `showRoles`,
         `e`.`showOrgs` AS `showOrgs`,
         `f`.`showPosts` AS `showPosts`

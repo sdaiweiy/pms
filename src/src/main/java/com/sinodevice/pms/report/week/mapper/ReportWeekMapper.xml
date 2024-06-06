@@ -18,22 +18,25 @@
         <if test="reportWeek.endDate != null">
             AND R1.END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
         </if>
-        ORDER BY R1.WEEK_INDEX DESC,S1.REAL_NAME ASC
+        <if test="year != null">
+            AND SUBSTR(R1.BEGIN_DATE FROM 1 FOR 4) = #{year}
+        </if>
+        ORDER BY SUBSTR(BEGIN_DATE FROM 1 FOR 4) DESC, R1.WEEK_INDEX DESC,S1.REAL_NAME ASC
     </select>
 
     <select id="pageTotal" resultType="com.sinodevice.pms.report.week.vo.ReportWeekVo">
         SELECT BEGIN_DATE,END_DATE,WEEK_INDEX
         FROM report_week where DELETED = 0
-        <where>
-            <if test="reportWeek.beginDate != null">
-                AND BEGIN_DATE <![CDATA[ >= ]]> CONCAT(#{reportWeek.beginDate},' 00:00:00')
-            </if>
-            <if test="reportWeek.endDate != null">
-                AND END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
-            </if>
-        </where>
-        GROUP BY WEEK_INDEX
-        ORDER BY WEEK_INDEX DESC
+        <if test="reportWeek.beginDate != null">
+            AND BEGIN_DATE <![CDATA[ >= ]]> CONCAT(#{reportWeek.beginDate},' 00:00:00')
+        </if>
+        <if test="reportWeek.endDate != null">
+            AND END_DATE <![CDATA[ <= ]]> CONCAT(#{reportWeek.endDate},' 23:59:59')
+        </if>
+        GROUP BY
+        SUBSTR(BEGIN_DATE FROM 1 FOR 4),WEEK_INDEX
+        ORDER BY
+        SUBSTR(BEGIN_DATE FROM 1 FOR 4) DESC,WEEK_INDEX DESC
     </select>
 
     <select id="weekList" resultType="com.sinodevice.pms.report.week.vo.ReportWeekVo">

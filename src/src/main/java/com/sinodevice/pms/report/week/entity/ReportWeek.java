@@ -51,6 +51,10 @@ public class ReportWeek extends BaseEntity {
     @TableField("PLAN")
     private String plan;
 
+    @ApiModelProperty(value = "协调/解决的问题")
+    @TableField("RESOLVE")
+    private String resolve;
+
     @ApiModelProperty(value = "第几周周报")
     @TableField("WEEK_INDEX")
     private Integer weekIndex;

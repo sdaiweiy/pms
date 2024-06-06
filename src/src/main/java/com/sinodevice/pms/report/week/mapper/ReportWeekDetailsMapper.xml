@@ -5,6 +5,7 @@
     <select id="list" resultType="com.sinodevice.pms.report.week.vo.ReportWeekDetailsVo">
         SELECT R1.*,S1.REAL_NAME,P1.REMARK AS TASK_REMARK
         FROM report_week_details R1 JOIN report_week R2 ON R2.DELETED = 0 AND R1.REPORT_ID = R2.ID AND R2.WEEK_INDEX = #{weekIndex}
+        AND SUBSTR(R2.BEGIN_DATE FROM 1 FOR 4) = #{year}
         JOIN SYS_USER S1 ON R2.USER_ID = S1.ID
         LEFT JOIN project_task_process P1 ON R1.TASK_ID = P1.TASK_ID AND P1.USER_ID = R2.USER_ID
         ORDER BY S1.REAL_NAME ASC

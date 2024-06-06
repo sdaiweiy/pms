@@ -1,7 +1,28 @@
 <!-- 参数表单弹窗 -->
 <form id="report-week-form" lay-filter="report-week-form" class="layui-form model-form"
       style="padding-top:10px;padding-right:30px;">
-    <div class="layui-form-item" style="padding-left:30px;margin-bottom:0;">
+
+    <label class="layui-form-label required-tip" style="width:175px; text-align: left;">本周重点工作完成情况:</label>
+    <div style="margin-left:30px;width:750px;">
+        <textarea name="remark" id="remark" placeholder="请填写本周重点工作完成情况" class="layui-textarea"
+                  lay-verify="required" required></textarea>
+    </div>
+
+    <label class="layui-form-label required-tip" style="width:175px; text-align: left;">需要协调/解决的问题:</label>
+    <div style="margin-left:30px;width:750px;">
+        <textarea name="resolve" id="resolve" placeholder="请填写需要协调/解决的问题" class="layui-textarea"
+                  lay-verify="required" required></textarea>
+    </div>
+
+    <label class="layui-form-label required-tip" style="width:175px; text-align: left;">下周推进计划:</label>
+    <div style="margin-left:30px;width:750px;">
+        <textarea name="plan" id="plan" placeholder="请填写下周计划" class="layui-textarea" lay-verify="required"
+                  required></textarea>
+    </div>
+
+    <br/>
+
+    <!--<div class="layui-form-item" style="padding-left:30px;margin-bottom:0;">
         <button class="layui-btn layui-btn-xs pull-right" id="report-week-details-add-btn" type="button">
             <i class="layui-icon">&#xe654;</i>添加工作事项
         </button>
@@ -10,21 +31,8 @@
 
         <table class="layui-table" id="report-week-details-table" lay-filter="report-week-details-table"
                style="margin:0;"></table>
-    </div>
+    </div>-->
 
-    <label class="layui-form-label required-tip">本周总结:</label>
-    <div style="margin-left:30px;width:750px;">
-        <textarea name="remark" id="remark" placeholder="请填写本周工作总结" class="layui-textarea" lay-verify="required"
-                  required></textarea>
-    </div>
-
-    <label class="layui-form-label required-tip">下周计划:</label>
-    <div style="margin-left:30px;width:750px;">
-        <textarea name="plan" id="plan" placeholder="请填写下周计划" class="layui-textarea" lay-verify="required"
-                  required></textarea>
-    </div>
-
-    <br/>
 
     <div class="layui-form-item model-form-footer" id="report-week-form-footer">
         <button class="layui-btn layui-btn-primary close" ew-event="closeDialog" type="button">取消</button>
@@ -33,9 +41,15 @@
 </form>
 
 <script type="text/html" id="report-week-details-table-bar">
-<!--    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>-->
+    <!--    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>-->
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
+
+<style type="text/css">
+    .layui-textarea {
+        min-height: 190px;
+    }
+</style>
 
 <script>
     layui.use(['layer', 'table', 'crab', 'form'], function () {
@@ -50,7 +64,7 @@
         //第一个实例
         table.render({
             elem: '#report-week-details-table',
-            height: 250,
+            height: 150,
             width: 750,
             data: weekDetails,
             limit: 999999,
@@ -88,9 +102,9 @@
                     table.reload('report-week-details-table', {data: data});
                 });
                 form.val('report-week-form', weekReport);
-                $('#remark,#plan').attr('readonly', true);
-                $('#report-week-details-add-btn').hide();
-                $('#report-week-form-footer').hide();
+                //$('#remark,#plan,#resolve').attr('readonly', true);
+                //$('#report-week-details-add-btn').hide();
+                //$('#report-week-form-footer').hide();
             } else {
                 crab.get("/project/task/process/listLoginUserWeekTask", {}, function (data) {
                     for (var i = 0; i < data.length; i++) {
@@ -152,15 +166,7 @@
         }
 
         form.on('submit(report-week-form-submit)', function (data) {
-            if (data.field.remark.length < 20) {
-                layer.msg('请认真填写本周总结,长度需大于20!', {icon: 2});
-                return false;
-            }
-            if (data.field.plan.length < 20) {
-                layer.msg('请认真填写下周计划,长度需大于20!', {icon: 2});
-                return false;
-            }
-            if (weekDetails.length == 0) {
+            /*if (weekDetails.length == 0) {
                 layer.msg('本周工作明细不能为空!', {icon: 2});
                 return false;
             }
@@ -174,16 +180,18 @@
                     layer.msg('任务耗时不能为空!', {icon: 2});
                     return false;
                 }
-            }
+            }*/
             var postData = {
+                id: weekReport ? weekReport.id : null,
                 remark: data.field.remark,
                 plan: data.field.plan,
+                resolve: data.field.resolve,
                 reportWeekDetailsList: weekDetails
             };
             crab.post('/report/week/dto', JSON.stringify(postData), function (result) {
                 layer.closeAll();
                 table.reload('report-week-table', {});
-                layer.msg(status == 0 ? '保存成功' : '提交成功', {icon: 1, time: 1500});
+                layer.msg(weekReport.id ? '保存成功' : '提交成功', {icon: 1, time: 1500});
             }, true);
             return false;
         });
