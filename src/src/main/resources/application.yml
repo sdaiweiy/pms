@@ -60,11 +60,7 @@ logging:
     - com.memorynotfound=trace
     - com.sinodevice.pms=trace
 
-# actuator 监控 http://localhost:8088/actuator
-# 监控内容介绍 https://www.cnblogs.com/ityouknow/p/8423590.html
-# 可视化管理 https://www.cnblogs.com/shihaiming/p/8488939.html
+#关闭所有端点
 management:
   endpoints:
-    web:
-      exposure:
-        include: "*"
+    enabled-by-default: false
