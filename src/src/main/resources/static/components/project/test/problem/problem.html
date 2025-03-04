@@ -16,7 +16,7 @@
                 <option value="0">待处理</option>
                 <option value="1">已反馈</option>
                 <option value="2">待继续处理</option>
-                <option value="3">已关闭</option>
+                <option value="3">已完成</option>
             </select>&emsp;
                 提出时间：<input name="beginTime" id="beginTime" class="layui-input search-input" style="width:100px;" type="text"
                             placeholder="开始时间"/>&nbsp;
@@ -80,7 +80,7 @@
                             0: '<span class="layui-badge layui-bg-orange">待处理</span>',
                             1: '<span class="layui-badge layui-bg-blue">已反馈</span>',
                             2: '<span class="layui-badge layui-bg-red">待继续处理</span>',
-                            3: '<span class="layui-badge layui-bg-green">已关闭</span>'
+                            3: '<span class="layui-badge layui-bg-green">已完成</span>'
                         };
                         return statusList[d.status];
                     }
